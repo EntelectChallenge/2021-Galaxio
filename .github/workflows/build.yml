@@ -35,6 +35,10 @@ jobs:
       run: dotnet publish --configuration Release --output ../logger-publish
       working-directory: game-logger
 
+    - name: Build Reference Bot
+      run: dotnet publish --configuration Release --output ../../reference-bot-publish
+      working-directory: starter-bots/ReferenceBot
+
     - name: Assemble starter pack
       run: |
           chmod +x build_starterpack.sh

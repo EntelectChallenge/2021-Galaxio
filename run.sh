@@ -1,5 +1,10 @@
 #!/bin/bash
 
-cd ../ec-compose
-./build.sh
-docker-compose -p "ec" up --build
+dotnet ./runner-publish/GameRunner.dll &
+dotnet ./engine-publish/Engine.dll &
+dotnet ./logger-publish/Logger.dll &
+dotnet ./reference-bot-publish/Logger.dll &
+dotnet ./reference-bot-publish/Logger.dll &
+dotnet ./reference-bot-publish/Logger.dll &
+
+$SHELL
