@@ -1,0 +1,88 @@
+image: docker:latest
+
+stages:
+  - build
+  - deploy
+
+# ==============================| VARIABLES |============================== #
+variables:
+  # REFERENCE BOT VERSION
+  REFERENCE_BOT_VERSION: "2021.0.0"
+
+  # STARTER BOT VERSIONS
+  DOT_NET_VERSION: "3.1"
+  NODE_VERSION: "12"
+
+  # AWS
+  DOCKER_REGISTRY: $AWS_GAME_DOCKER_REPOSITORY
+  REGION: $AWS_DEFAULT_REGION
+
+  # Misc
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_HOST: tcp://docker:2375
+
+# ==============================| REFERENCE BOT |============================== #
+build:reference:
+  stage: build
+  image: mcr.microsoft.com/dotnet/core/sdk:$DOT_NET_VERSION
+  tags:
+    - aws
+  script:
+    - cd ./ReferenceBot
+    - dotnet publish --configuration Release --output ./publish/
+  artifacts:
+    paths:
+      - ./ReferenceBot/publish/*
+    expire_in: 1 hour
+  only:
+    - master
+
+deploy:reference:
+  stage: deploy
+  image:
+    name: amazon/aws-cli
+    entrypoint: [ "" ]
+  needs: ["build:reference"]
+  tags:
+    - aws
+  services:
+    - docker:dind
+  variables:
+    APP_NAME: reference-bot
+  before_script:
+    - amazon-linux-extras install docker
+    - aws --version
+    - docker --version
+  script:
+    - cd ./ReferenceBot
+    - docker build -t $DOCKER_REGISTRY/$APP_NAME:$REFERENCE_BOT_VERSION .
+    - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
+    - docker push $DOCKER_REGISTRY/$APP_NAME:$REFERENCE_BOT_VERSION
+  only:
+    - master
+
+# ==============================| STARTER BOTS |============================== #
+
+build:dotnetcore:
+  stage: build
+  image: mcr.microsoft.com/dotnet/core/sdk:$DOT_NET_VERSION
+  tags:
+    - aws
+  script:
+    - cd ./NETCoreBot
+    - dotnet publish --configuration Release --output ./publish/
+  only:
+    - master-disabled
+
+build:javascript:
+  stage: build
+  image: node:$NODE_VERSION
+  tags:
+    - aws
+  before_script:
+    - cd ./JavascriptBot
+    - npm ci
+  script:
+    - npm build
+  only:
+    - master-disabled

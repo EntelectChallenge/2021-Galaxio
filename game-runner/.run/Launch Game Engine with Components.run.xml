@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Launch Game Engine with Components" type="CompoundRunConfigurationType">
+    <toRun name="Logger" type="DotNetProject" />
+    <toRun name="Engine" type="DotNetProject" />
+    <toRun name="GameRunner: IIS Express" type="LaunchSettings" />
+    <method v="2" />
+  </configuration>
+</component>

@@ -1,0 +1,48 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  ENGINE_VERSION: 2021.0.0
+  DOCKER_REGISTRY: $AWS_GAME_DOCKER_REPOSITORY
+  REGION: $AWS_DEFAULT_REGION
+
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_HOST: tcp://docker:2375
+
+build:engine:
+  stage: build
+  image: mcr.microsoft.com/dotnet/core/sdk:3.1
+  tags:
+    - aws
+  script: 
+    - dotnet publish --configuration Release --output ./publish/
+  artifacts:
+    paths:
+       - ./publish/*
+    expire_in: 1 hour
+  only:
+    - master
+
+deploy:engine:
+  stage: deploy
+  image:
+    name: amazon/aws-cli
+    entrypoint: [ "" ]
+  needs: ["build:engine"]
+  tags:
+    - aws
+  variables:
+    APP_NAME: engine
+  services:
+    - docker:dind
+  before_script:
+    - amazon-linux-extras install docker
+    - aws --version
+    - docker --version
+  script:
+    - docker build -t $DOCKER_REGISTRY/$APP_NAME:$ENGINE_VERSION . 
+    - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
+    - docker push $DOCKER_REGISTRY/$APP_NAME:$ENGINE_VERSION
+  only:
+    - master

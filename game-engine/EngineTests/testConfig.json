@@ -1,0 +1,91 @@
+{
+  "RunnerUrl": "http://localhost",
+  "RunnerPort": "5000",
+  "BotCount": 4,
+  "TickRate": 10,
+  "MaxRounds": 12500, // Makes a 5 minute game at 24hz
+  "MapRadius": 20000,
+  "StartRadius": 1000,
+  "StartingPlayerSize": 10,
+  "MinimumPlayerSize": 5,
+  "ConsumptionRatio": {
+    "1": 0.5,
+    "3": 0.5
+  },
+  "ScoreRates": {
+    "1": 10,
+    "2": 1,
+    "3": 1
+  },
+  "Speeds": {
+    "Ratio": 200,
+    "StartingSpeed": 20
+  },
+  "Seeds": {
+    "PlayerSeeds": [ 21345, 11223, 12334, 54675 ],
+    "MaxSeed": 300000,
+    "MinSeed": 10000
+  },
+  "WorldFood": {
+    "MaxStartingSeparation": 20,
+    "MaxSeparation": 50,
+    "MinSeparation": 5,
+    "PlayerSafeFood": 2,
+    "StartingFoodCount": 2408,
+    "FoodSize": 1,
+    "MaxConsumptionSize": 200
+  },
+  "Wormholes": {
+    "Count": 32,
+    "Seed": 4648964,
+    "MinSeed": 10000,
+    "MaxSeed": 50000,
+    "StartSize": 20,
+    "MinSize": 4,
+    "MaxSize": 1000,
+    "GrowthRate": 1.2,
+    "MinSeparation": 300
+  },
+  "Afterburners": {
+    "SizeConsumptionPerTick": 1,
+    "SpeedFactor": 2
+  },
+  "GasClouds": {
+    "GenerateCount": 50,
+    "MaxCount": 20,
+    "Seed": null,
+    "MinSeed": -10000,
+    "MaxSeed": 10000,
+    "Modular": 3000,
+    "GenerateSubCount": 20,
+    "MaxSubCount": 10,
+    "SubModular": 150,
+    "Multiplier": 7,
+    "ConstX": 0.5,
+    "ConstY": 0.3,
+    "ConstXY": 2,
+    "RepeatingValuesLimit": 5,
+    "MinDistanceFromPlayers": 100,
+    "NodeSizeMultiplier": 1,
+    "AffectPerTick": 1
+  },
+  "AsteroidFields": {
+    "GenerateCount": 50,
+    "MaxCount": 20,
+    "Seed": null,
+    "MinSeed": -10000,
+    "MaxSeed": 10000,
+    "Modular": 3000,
+    "GenerateSubCount": 20,
+    "MaxSubCount": 10,
+    "SubModular": 150,
+    "Multiplier": 7,
+    "ConstX": 0.5,
+    "ConstY": 0.3,
+    "ConstXY": 2,
+    "RepeatingValuesLimit": 5,
+    "MinDistanceFromPlayers": 100,
+    "NodeSizeMultiplier": 0.5,
+    "AffectPerTick": 1
+  }
+}

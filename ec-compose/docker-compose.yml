@@ -1,0 +1,26 @@
+version: "3.9"
+services:
+  runner:
+    build: ../game-runner/
+    networks:
+      - network      
+    ports:
+      - "5000:5000"
+  engine:
+    build: ../game-engine
+    networks:
+      - network 
+    environment:
+      RunnerIp: runner
+    depends_on:
+      - "runner"
+  logger:
+    build: ../game-logger
+    networks:
+      - network
+    environment:
+      RUNNER_IPV4: runner
+    depends_on:
+      - "runner"
+networks:
+  network:
