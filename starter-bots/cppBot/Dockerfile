@@ -1,4 +1,5 @@
-FROM entelectchallenge/cplusplus:2021
+# Base image provided by Entelect Challenge
+FROM public.ecr.aws/m5z5a5b2/languages/cplusplus:2021
 
 WORKDIR /app
 
@@ -11,5 +12,6 @@ RUN cmake --build ./publish
 
 WORKDIR ./publish
 
+# The entrypoint to run the bot
 ENTRYPOINT ["./cppBot"]
 

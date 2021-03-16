@@ -30,6 +30,7 @@ namespace GameRunner.Services
 
         public int TotalConnectedClients => ActiveConnections.Count;
         public int TotalConnectedBots => RegistrationTokens.Count;
+        public int TotalConnections => AllConnections.Count;
         public string FailureReason { get; }
         public bool IsCoreReady => GetEngine() != default && GetLogger() != default;
         public GameCompletePayload GameCompletePayload

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -195,11 +196,6 @@ namespace Logger.Services
                 $"{gameStateDto.World.CurrentTick}_DTO_{loggerConfig.GameStateLogFileName}",
                 logDirectory,
                 gameStateDtoLog.ToArray());
-
-            if (pushLogsToS3)
-            {
-                await SaveLogsToS3(filePath);
-            }
         }
 
         private void OnWriteExceptionLog(GameException gameException)
@@ -218,23 +214,36 @@ namespace Logger.Services
         private async Task OnSaveLogs(GameCompletePayload gameCompletePayload)
         {
             LogWriter.LogInfo("Logger", "Game Complete. Saving Logs...");
+            var finalLogDir = logDirectory;
+
+            if (pushLogsToS3)
+            {
+                finalLogDir = $"{logDirectory}/logs";
+                var finalLogDirDetails = Directory.CreateDirectory(finalLogDir);
+            }
+
+            LogWriter.LogInfo("Logger", $"Saving Files into Directory: {finalLogDir}, Current Directory: {Directory.GetCurrentDirectory()}");
+
             string gameExceptionFilePath = null;
             if (gameExceptionLog.Count > 0)
             {
+                LogWriter.LogInfo("Logger", "Game Exception Log");
                 gameExceptionFilePath = WriteFileWithSerialisation(
                     loggerConfig.GameExceptionLogFileName,
-                    logDirectory,
+                    finalLogDir,
                     gameExceptionLog.ToArray());
             }
 
+            var logTime = $"{DateTime.Now:yyyy-MM-dd_hh-mm-ss}";
+
             var gameStateFilePath = WriteFileWithSerialisation(
-                $"{matchStatusFileName ?? loggerConfig.GameStateLogFileName}",
-                logDirectory,
+                $"{matchStatusFileName ?? loggerConfig.GameStateLogFileName}_{logTime}",
+                finalLogDir,
                 gameStateDtoLog,
                 string.IsNullOrWhiteSpace(matchStatusFileName));
             var gameCompleteFilePath = WriteFileWithSerialisation(
-                $"{gameCompleteFileName ?? "GameComplete"}",
-                logDirectory,
+                $"{gameCompleteFileName ?? string.Format("{0}_{1}_GameComplete", loggerConfig.GameStateLogFileName, logTime)}",
+                finalLogDir,
                 gameCompletePayload,
                 string.IsNullOrWhiteSpace(gameCompleteFileName));
 
@@ -245,13 +254,7 @@ namespace Logger.Services
             {
                 try
                 {
-                    await SaveLogsToS3(gameStateFilePath);
-                    await SaveLogsToS3(gameCompleteFilePath);
-                    if (!string.IsNullOrWhiteSpace(gameExceptionFilePath) &&
-                        gameExceptionLog.Count > 0)
-                    {
-                        await SaveLogsToS3(gameExceptionFilePath);
-                    }
+                    await SaveLogsToS3(finalLogDir);
                 }
                 catch (Exception e)
                 {
@@ -291,14 +294,29 @@ namespace Logger.Services
             object objToSerialise,
             bool withTime = true)
         {
-            var filename = withTime ? $"{logFileName}_{DateTime.Now:yyyy-MM-dd_hh-mm-ss}.json" : logFileName;
+            var filename = withTime ? $"{logFileName}.json" : logFileName;
             var path = Path.Combine(dir, filename);
 
-            using var file = File.CreateText(path);
-            var serializer = new JsonSerializer();
-            serializer.Formatting = Formatting.Indented;
-            serializer.Serialize(file, objToSerialise);
-
+            LogWriter.LogInfo("Logger", $"Begin writing file {path.ToString()}");
+            try
+            {
+                using var file = File.CreateText(path);
+                var serializer = new JsonSerializer();
+                try
+                {
+                    serializer.Serialize(file, objToSerialise);
+                    file.Close();
+                }
+                catch (Exception e)
+                {
+                    LogWriter.LogInfo("Logger", $"Serializer Error: {e.Message}");
+                }
+            }
+            catch (Exception e)
+            {
+                LogWriter.LogInfo("Logger", $"Error: {e.Message}");
+            }
+            LogWriter.LogInfo("Logger", $"Finished writing file {path.ToString()}");
             return path;
         }
 
@@ -330,15 +348,17 @@ namespace Logger.Services
             }
         }
 
-        private async Task SaveLogsToS3(string filePath)
+        private async Task SaveLogsToS3(string finalLogDir)
         {
             var bucketName = s3BucketName;
             var bucketKey = s3BucketKey;
-
             var bucketRegion = RegionEndpoint.GetBySystemName(awsRegion);
 
+            LogWriter.LogInfo("AWS.S3", "Beginning S3 Upload");
             s3Client = new AmazonS3Client(bucketRegion);
-            await UploadFileAsync(filePath, bucketName, bucketKey);
+            var transferUtility = new TransferUtility(s3Client);
+            await transferUtility.UploadDirectoryAsync(finalLogDir, bucketName);
+            LogWriter.LogInfo("AWS.S3", "Completed S3 Upload");
         }
 
         private async Task UploadFileAsync(string filePath, string bucketName, string keyName)

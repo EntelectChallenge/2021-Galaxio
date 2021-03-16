@@ -24,7 +24,7 @@ namespace NETCoreBot
             var registrationToken = Environment.GetEnvironmentVariable("Token");
             var environmentIp = Environment.GetEnvironmentVariable("RUNNER_IPV4");
             var ip = !string.IsNullOrWhiteSpace(environmentIp) ? environmentIp : Configuration.GetSection("RunnerIP").Value;
-            ip = ip.StartsWith("http://") ? url : "http://" + url;
+            ip = ip.StartsWith("http://") ? ip : "http://" + ip;
 
             var port = Configuration.GetSection("RunnerPort");
             

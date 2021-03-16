@@ -29,9 +29,14 @@ namespace Engine.Services
             Value.WorldFood.StartingFoodCount = botCount * Value.WorldFood.StartingFoodCountRatio;
             Value.Wormholes.Count = botCount * Value.Wormholes.CountRatio;
             Value.GasClouds.MaxCount = (int)Math.Ceiling(botCount * Value.GasClouds.MaxCountRatio);
-            Value.GasClouds.Modular = botCount * Value.GasClouds.ModularRatio;
+            Value.GasClouds.Modular = GetOddModularValue(Value.GasClouds.ModularRatio, botCount);
             Value.AsteroidFields.MaxCount = (int)Math.Ceiling(botCount * Value.AsteroidFields.MaxCountRatio);
-            Value.AsteroidFields.Modular = botCount * Value.AsteroidFields.ModularRatio;
+            Value.AsteroidFields.Modular = GetOddModularValue(Value.AsteroidFields.ModularRatio, botCount);
+        }
+
+        private int GetOddModularValue(int ratio, int botCount)
+        {
+            return (ratio * botCount) % 2 == 0 ? (ratio * botCount) + 1 : (ratio * botCount);
         }
     }
 

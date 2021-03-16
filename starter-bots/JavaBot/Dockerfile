@@ -1,5 +1,5 @@
 # Base image provided by Entelect Challenge
-FROM entelectchallenge/java:2021
+FROM public.ecr.aws/m5z5a5b2/languages/java:2021
 
 WORKDIR /app
 

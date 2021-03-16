@@ -157,18 +157,7 @@ namespace Engine.Services
             for (var i = 0; i < playerSeeds.Count; i++)
             {
                 var playerSeed = playerSeeds[i];
-                var totalPlayers = engineConfig.BotCount;
-
-                var startingPositions = new List<Position>();
-
-                for (var playerNumber = 0; playerNumber < totalPlayers; playerNumber++)
-                {
-                    startingPositions.Add(
-                        vectorCalculatorService.GetNewPlayerStartingPosition(
-                            playerNumber,
-                            engineConfig.BotCount,
-                            engineConfig.StartRadius));
-                }
+                var startingPositions = GetPlayerStartingPositions();
 
                 var startingFood = engineConfig.WorldFood.PlayerSafeFood;
                 for (var startFoodPlaced = 0; startFoodPlaced < startingFood; startFoodPlaced++)
@@ -376,6 +365,7 @@ namespace Engine.Services
                 config.Modular);
             var result = new Tuple<List<GameObject>, int>(new List<GameObject>(), obstaclePositions.Item2);
             var maxCount = Math.Min(obstaclePositions.Item1.Count, config.MaxCount);
+            var startingPositions = GetPlayerStartingPositions().Select(p => new GameObject { Position = p }).ToList();
 
             /*
              These item counts are merely the total number of obstacle nodes that have been generated, which will most likely not be a set amount.
@@ -406,7 +396,7 @@ namespace Engine.Services
 
                     var noObjectsInRange = CheckNoObjectsInRange(
                         obstacleNode,
-                        gameObjects.Where(g => g.GameObjectType == GameObjectType.Player).ToList(),
+                        startingPositions,
                         config.MinDistanceFromPlayers);
 
                     if (noObjectsInRange)
@@ -487,6 +477,22 @@ namespace Engine.Services
             }
 
             return new Tuple<List<Tuple<int, int, int, decimal>>, int>(values, Convert.ToInt32(seed));
+        }
+
+        private List<Position> GetPlayerStartingPositions()
+        {
+            var startingPositions = new List<Position>();
+
+            for (var playerNumber = 0; playerNumber < engineConfig.BotCount; playerNumber++)
+            {
+                startingPositions.Add(
+                    vectorCalculatorService.GetNewPlayerStartingPosition(
+                        playerNumber,
+                        engineConfig.BotCount,
+                        engineConfig.StartRadius));
+            }
+
+            return startingPositions;
         }
     }
 }

@@ -12,6 +12,7 @@ namespace Domain.Models
         public GameObjectType GameObjectType { get; set; }
         public int CurrentHeading { get; set; }
         public Position Position { get; set; }
+        public Effects Effects { get; set; }
 
         public List<int> ToStateList() =>
             new List<int>
@@ -21,7 +22,8 @@ namespace Domain.Models
                 CurrentHeading,
                 (int) GameObjectType,
                 Position.X,
-                Position.Y
+                Position.Y,
+                Effects.GetHashCode()
             };
 
         public static GameObject FromStateList(Guid id, List<int> stateList) =>
@@ -36,7 +38,8 @@ namespace Domain.Models
                 {
                     X = stateList[4],
                     Y = stateList[5]
-                }
+                },
+                Effects = Enum.Parse<Effects>(stateList[6].ToString())
             };
     }
 }

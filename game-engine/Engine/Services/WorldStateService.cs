@@ -86,6 +86,7 @@ namespace Engine.Services
                 return;
             }
 
+            AddBotEffects(activeEffect);
             activeEffects.Add(activeEffect);
         }
 
@@ -96,6 +97,7 @@ namespace Engine.Services
                 return;
             }
 
+            RemoveBotEffects(activeEffect);
             activeEffects.Remove(activeEffect);
         }
 
@@ -363,6 +365,26 @@ namespace Engine.Services
             lostBots = finalBotList;
 
             return finalBotList;
+        }
+
+        private void AddBotEffects(ActiveEffect activeEffect)
+        {
+            var bot = state.PlayerGameObjects.Find(p => p.Id == activeEffect.Bot.Id);
+
+            if (bot != default)
+            {
+                bot.Effects |= activeEffect.Effect;
+            }
+        }
+
+        private void RemoveBotEffects(ActiveEffect activeEffect)
+        {
+            var bot = state.PlayerGameObjects.Find(p => p.Id == activeEffect.Bot.Id);
+
+            if (bot != default)
+            {
+                bot.Effects &= activeEffect.Effect;
+            }
         }
 
         private List<PlayerResult> GeneratePlayerResults() =>

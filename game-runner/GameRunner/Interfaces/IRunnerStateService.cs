@@ -11,6 +11,7 @@ namespace GameRunner.Interfaces
         void DeregisterBot(string contextConnectionId);
         int TotalConnectedClients { get; }
         int TotalConnectedBots { get; }
+        int TotalConnections { get; }
         string FailureReason { get; }
         bool IsCoreReady { get; }
         GameCompletePayload GameCompletePayload { get; set; }

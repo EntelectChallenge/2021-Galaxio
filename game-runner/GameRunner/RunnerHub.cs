@@ -294,13 +294,13 @@ namespace GameRunner
 
         private void BotConnectionTimeout(object sender, ElapsedEventArgs e)
         {
-            if (runnerStateService.TotalConnectedClients != runnerConfig.BotCount)
+            if (runnerStateService.TotalConnections < runnerConfig.BotCount)
             {
                 Logger.LogDebug(
                     "RunnerHub.OnBotConnectionTimeout",
                     string.Format(
                         "{0} out of {1} bots connected in time, runner is shutting down.",
-                        runnerStateService.TotalConnectedClients,
+                        runnerStateService.TotalConnections,
                         runnerConfig.BotCount));
                 cloudIntegrationService.Announce(CloudCallbackType.Failed);
                 applicationLifetime.StopApplication();
