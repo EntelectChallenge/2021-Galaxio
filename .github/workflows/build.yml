@@ -39,6 +39,7 @@ jobs:
       run: |
           chmod +x build_starterpack.sh
           ./build_starterpack.sh
+          ls
 
     - name: Upload artifact
       if: matrix.java_version == 1.8
