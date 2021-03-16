@@ -1,10 +1,10 @@
 #!/bin/bash
 
-dotnet ./runner-publish/GameRunner.dll &
-dotnet ./engine-publish/Engine.dll &
-dotnet ./logger-publish/Logger.dll &
-dotnet ./reference-bot-publish/Logger.dll &
-dotnet ./reference-bot-publish/Logger.dll &
-dotnet ./reference-bot-publish/Logger.dll &
+cd ./runner-publish/ && dotnet GameRunner.dll &
+cd ./engine-publish/ && dotnet Engine.dll &
+cd ./logger-publish/ && dotnet Logger.dll &
+cd ./reference-bot-publish/ && dotnet ReferenceBot.dll &
+cd ./reference-bot-publish/ && dotnet ReferenceBot.dll &
+cd ./reference-bot-publish/ && dotnet ReferenceBot.dll &
 
 $SHELL
