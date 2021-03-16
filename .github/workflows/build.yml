@@ -30,7 +30,9 @@ jobs:
       working-directory: game-logger
 
     - name: Assemble starter pack
-      run: ./build_starterpack.sh
+      run: |
+          chmod +x build_starterpack.sh
+          ./build_starterpack.sh
 
     - name: Upload artifact
       if: matrix.java_version == 1.8
