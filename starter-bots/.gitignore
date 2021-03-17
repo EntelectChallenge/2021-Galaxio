@@ -366,13 +366,9 @@ FodyWeavers.xsd
 
 **/target/
 
-# Cmake
-*cmake*
-
 # vcpkg
 *vcpkg/
 
 PythonBot/venv/
 
 **/.cmake_build/
-#cpp build

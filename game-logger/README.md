@@ -1,19 +1,15 @@
-# Game Engine
+# Game Logger
 
-This project contains the Game Engine for the Entelect Challenge 2020
+This project contains the Game Logger for the Entelect Challenge 2021
 
-## Game Rules
+## About the Game Logger
 
-The game for 2020 is Overdrive. Detailed game rules can be found [here](game-rules.md)
+The Game Logger is used to write logs after a match for the Game State at each tick to be used for debugging and input for the visualiser. The Game Logger connects to the Game Runner
+in the same manner as a bot with the exception that it happens at the very start along with the Game Engine, together these are key components for each match.
 
-## Building the project
-To build this project simply run `build.sh` in the project root directory.
-The game-engine.jar that is needed by the game runner can be found in the project root directory.
-You can inspect the state of the build in the build.log that will be created in the project root folder
+Once the Game Logger is connected to the Game Runner it will save the current Game State in memory and write a file once the match is finished. The Game Logger 
+also serves as an Exception Logger for any Game Engine related exceptions.
 
-## Useful commands for development
-If you want to compile the project you can run ```sbt compile```.  
-If you want to create a jar file you run ```sbt package```.  
-If you want to build a fat jar with the dependencies inside you run ```sbt assembly```.
+As soon as the match is finished, the logging process needs to complete before sending a response to the Game Runner to start the shoutdown process of all the Game Components.
 
 You can find more information on the project structure and technologies [here](technical.md) 
