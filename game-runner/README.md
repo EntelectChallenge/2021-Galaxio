@@ -123,7 +123,8 @@ These are SignalR events that your bot can subscribe to.
 ### Mandatory:
 
 - "Registered"
-    - 
+    - This will be called once your bot has successfully registered with the runner for the match
+    - This will provide you with the ID the runner will use to represent your bot in the game state during a match
 - "ReceiveGameState" 
     - Once every tick a gameState will be sent to all active bots via this action
 - "Disconnect"
