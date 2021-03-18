@@ -16,9 +16,11 @@ public class Main {
         token = (token != null) ? token : UUID.randomUUID().toString();
 
         String environmentIp = System.getenv("RUNNER_IPV4");
-        String ip = (environmentIp != null && !environmentIp.isBlank()) ? environmentIp : "localhost";
 
-        String url = "http://" + ip + ":" + "5000" + "/runnerhub";
+        String ip = (environmentIp != null && !environmentIp.isBlank()) ? environmentIp : "localhost";
+        ip = ip.startsWith("http://") ? ip : "http://" + ip;
+
+        String url = ip + ":" + "5000" + "/runnerhub";
 
         HubConnection hubConnection = HubConnectionBuilder.create(url)
                 .build();

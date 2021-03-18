@@ -38,7 +38,6 @@ namespace GameRunner
                     webBuilder =>
                     {
                         webBuilder.UseStartup<Startup>();
-                        // TODO we need to make this better and include https support once we get certs sorted
                         webBuilder.UseUrls("http://*:5000");
                     });
     }

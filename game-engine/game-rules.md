@@ -80,11 +80,11 @@ Wormholes exist in pairs, allowing a player's ship to enter one side and exit th
 
 ### Gas Clouds
 
-Gas clouds will be scattered around the map in groupings of smaller clouds. Ships can traverse through gas clouds, however once a ship is colliding with a asteroid cloud it will be reduced in size by 1 each game tick. Once a ship is no longer colliding with the gas cloud the effect will be removed.
+Gas clouds will be scattered around the map in groupings of smaller clouds. Ships can traverse through gas clouds, however once a ship is colliding with a gas cloud it will be reduced in size by 1 each game tick. Once a ship is no longer colliding with the gas cloud the effect will be removed.
 
 ### Asteroid Fields
 
-Asteroid fields will be scattered around the map in groupings of smaller clouds. Ships can traverse through asteroid fields, however once a ship is colliding with a gas cloud its speed will be reduced by a factor of 2. Once a ship is no longer colliding with the asteroid field the effect will be removed.
+Asteroid fields will be scattered around the map in groupings of smaller clouds. Ships can traverse through asteroid fields, however once a ship is colliding with a asteroid cloud its speed will be reduced by a factor of 2. Once a ship is no longer colliding with the asteroid field the effect will be removed.
 
 ## The Ship
 
@@ -93,19 +93,20 @@ Your bot is playing as a circular spaceship, that feeds on planetary objects and
 * **Speed** - your ship will move x positions forward each game tick, where x is your speed. Your speed will start at 20 and decrease as the ship grows.
 * **Size** - your ship will start with a radius of 10.
 * **Heading** - your ship will move in this direction, between 0 and 359 degrees.
-* **State** - your ship will be able to toggle it's afterburner on or off for as long as they are willing to keep it on.
 
-Your ship will not begin moving until you have given it a command to do so. Once given the first forward command it will continue moving at the ship's current speed or heading until the stop command is given.
+Your ship will not begin moving until you have given it a command to do so. Once given the first forward command it will continue moving at the ship's current speed and heading until the stop command is given.
 
 ### Speed
 
-Speed determines how far forward your ship will move each game tick. Speed is inversely linked to size, a larger ship will move slower. Speed is determined by the following formula:
+Speed determines how far forward your ship will move each game tick. Your ship will not move when stopped or an initial FORWARD command has been issued, however your speed value will remain the same. Speed is inversely linked to size, a larger ship will move slower. Speed is determined by the following formula:
 ```
-200/bot.size = speed
+speedRatio = 200
+speedRatio/bot.size = speed
 ```
 With the result being rounded to ceiling and with a minimum of 1.
 
-**Note** the value 200 comes from the Speeds.Ration in the appsettings.json and may change during balancing.
+
+**Note** *the value 200 comes from the Speeds.Ratio in the appsettings.json and may change during balancing.*
 
 
 ### Afterburner
@@ -120,7 +121,9 @@ A collision will occur when two objects overlap by at least one unit of world sp
 
 ### Ship to ship collisions
 
-When player ships collide, the ship with the larger size will consume the smaller ship at the rate of 50% of the consumer's size to a maximum of the consumee's size.
+When player ships collide, the ship with the larger size will consume the smaller ship at the rate of 50% of the larger ship's size to a maximum of the smaller ship's size.
+
+After a ship collision, both ships heading will be reversed by 180 degrees, they will be separated by 1 unit of world space and thereafter will continue to move in this new direction thereafter. This will simulate a bounce.
 
 ### Food collisions
 
@@ -128,7 +131,7 @@ When a ship collides with a food particle, the ship will consume the food in its
 
 ## Game Tick Payload
 
-All players will receive the state of the map and all objects at the start of each tick. The payload of each game tick will contain the following information:
+All players will receive the state of the world, all game objects and all player objects at the start of each tick. The payload of each game tick will contain the following information:
 
 ```
 {
@@ -145,6 +148,12 @@ All players will receive the state of the map and all objects at the start of ea
       "2b75d46b-2866-48f1-a4g5-179de15779o0": [ 3, 0, 0, 2, 234, -900 ],
       "9b34d46b-4844-48g2-a3b2-179de15771m8": [ 3, 0, 0, 2, -100, 189 ],
       ...
+    },
+    "PlayerObjects": {
+      "ad672ef2-f6a7-404c-950a-a867c54c7de0": [ 10, 20, 0, 1, 42, 225, 1 ],
+      "5f535caf-c3fc-4935-9d95-6e48b3680fd7": [ 20, 10, 90, 1, 234, -900, 2 ],
+      "e671e725-4bbb-4d4d-ad18-f013a567dfda": [ 40, 5, 180, 1, -100, 189, 4 ],
+      ...
     }
 }
 ```
@@ -158,7 +167,6 @@ The order of the data will not change, and is as follows:
 * Speed - The speed it is able to move at
 * Heading - The direction it is looking towards
 * GameObjectType - The type of object
-    * 1: Player
     * 2: Food
     * 3: Wormhole
     * 4: Gas Cloud
@@ -166,6 +174,25 @@ The order of the data will not change, and is as follows:
 * X Position - The x position on the cartesian plane
 * Y Position - The y position on the cartesian plane
 
+### PlayerObjects
+
+The PlayerObjects list contains all player objects on the map. The list contains of a guid for each object and the objects data.
+
+The order of the data will not change, and is as follows:
+* Size - The radius of the object
+* Speed - The speed it is able to move at
+* Heading - The direction it is looking towards
+* GameObjectType - The type of object
+    * 1: Player
+* X Position - The x position on the cartesian plane
+* Y Position - The y position on the cartesian plane
+* Active Effects - Bitwise effects currently on affect of the bot
+    * This is a cumulative bit flag, represented by:
+        * 0 = No effect
+        * 1 = Afterburner active
+        * 2 = Asteriod Field
+        * 4 = Gas cloud 
+    * For example, if a ship has all three effects the active effect will be 7.
 
 ## The Commands
 
@@ -204,7 +231,7 @@ This command will start moving your ship in the direction provided in degrees.
 STOP
 ```
 
-This command will stop moving your ship this game tick and until another movement command is issued.
+This command will stop moving your ship this game tick until another movement command is issued. There is no interia, therefore your ship stops instantly.
 
 ### Command: START_AFTERBURNER
 
@@ -212,7 +239,7 @@ This command will stop moving your ship this game tick and until another movemen
 START_AFTERBURNER
 ```
 
-This command activates your ship's afterburner.
+This command activates your ship's afterburner. Note, your speed is only used when you're currently moving in a direction, therefore afterburner will only have an effect when you are moving. The cost of afterburner will always be in effec, if the after burner effect is active.
 
 ### Command: STOP_AFTERBURNER
 
@@ -236,10 +263,13 @@ A score will be kept for each player which will be visible once the match is ove
 * Consuming food = 1 point
 * Traversing a wormhole = 1 point
 
+***Note** these values are representative only and are subject to change during balancing. Final values can be found in the appsettings.json of the game-engine folder.*
+
 ## The Math
 This section is to explain the general math used for the movement and placement calculations by the engine, as well as basic functions to calculate this. These formulas have been included as functions in each starter bot.
 
 The world uses the standard mathematical cartesian plane with the 0 degree at the rightmost axis and it positively increments counter clockwise as can be seen below:
+
 ![cartesian plane](https://github.com/Jana-Wessels/images/blob/master/cartesian_plane.png?raw=true)
 
 ### Distance Calculation
@@ -256,41 +286,45 @@ Where delta y and delta x:
 It does not matter if the delta's are negative as that will be cancelled out in the formula through squaring them. The formula for the distance calculation is as follows:
 
 ```
-distance = Math.Sqrt((deltaX) + (deltaY))
+distance = Math.Sqrt((deltaX ^ 2) + (deltaY ^ 2)) 
+// or
+distance = Math.Sqrt((y2 - y1)^2 + (x2 - x1)^2)
 ```
 This formula can be used to calculate the distance between objects in the world. Note this calculation gives the distance between the centrepoints of the objects so their radius is not taken into account with this calculation.
 
 ### Direction Calculation
 Direction is calculated using the arctan2 formula to get the direction between two objects. Note this formula returns a value between -180 and 180, and so an adjustment formula is explained further below.
 
-The formula also returns the direction in radians see below formula to convert radians to degrees, note the engine only accepts degrees:
+The formula also returns the direction in radians; see the formula below to convert radians to degrees:
 ```
 private int toDegrees(radians)
 {
     return Math.Round((radians * (180 / Math.PI)), 0);
 }
 ```
+***Note** the engine only accepts degrees.*
 
-The arctan2 calculation to find the direction from object 1 to object 2 is as follows, note that the order of the values is important otherwise you will get the direction from object 2 to object 1 which will be inverted by 180 degrees.
+The arctan2 calculation to find the direction from object 1 to object 2 is as follows:
 ```
 direction_inRadians = Math.Atan2(Y2 - Y1, X2 - X1)
 
 direction_inDegrees = toDegrees(direction_inRadians)
 ```
+***Note** that the order of the values is important otherwise you will get the direction from object 2 to object 1 which will be inverted by 180 degrees.*
 
-This now need to be corrected for the possible negative values, this can be done by adding 360° to the calculated degrees and modding it by 360. This will return a value between 0° and 360° which equates to the same cardinality as the calculated value.
+This now need to be corrected for the possible negative values, this can be done by adding 360° to the calculated degrees and modulo it by 360. This will return a value between 0° and 360° which equates to the same cardinality as the calculated value.
 
 ```
 corrected_direction_inDegrees = (cartesianDegrees + 360) % 360;
  
 ```
 
-*Example:
--150° will be corrected to 210° which when referring to the image of the cartesian plane above is in the same position, note the placement of a negative heading would be clockwise from 0°.
+**Example:
+-150° will be corrected to 210° which when referring to the image of the cartesian plane above is in the same position, note the placement of a negative heading would be clockwise from 0°.*
 
 
-**Note:**
+**NB:
 The values provided within this readme are subject to change during balance phases.
-Entelect has a best effort approach to maintaining this readme file. However the most accurate values can be found in appsettings.json within the Game Engine repository.
+Entelect will endevour to maintain this readme file. However the most accurate values can be found in appsettings.json within the game-engine folder.**
 
 
