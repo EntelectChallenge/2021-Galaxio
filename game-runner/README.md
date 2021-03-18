@@ -1,0 +1,122 @@
+# Game Runner
+
+## Contents
+- [Game Runner](#game-runner)
+    - [Overview](#overview)
+    - [Getting started](#getting-started)
+        - [Prerequisites](#prerequisites)
+        - [Installation](#installation)
+            - [Windows](#windows)
+            - [Linux](#linux)
+        - [Usage](#usage)
+            - [Windows](#windows-1)
+            - [Linux](#linux-1)
+    - [Additional languages](#additional-languages)
+    - [Runner Actions](#runner-actions)
+        - [From Runner](#from-runner)
+        - [To Runner](#to-runner)
+
+## Overview
+The game runner is responsible for facilitating a match between bots. It can be seen as a proxy that relays information between the [bots](../starter-bots/README.md) and the [game engine](../game-engine/README.md). The game engine produces state information which the game runner passes onto the bots. Once the bots have processed the state and produced a command, that command is then consumed by the game runner and passed back to the game engine, this process continues until the match ends.
+
+The bots used in a match will start up as clients which connect to the runner. These bots will run continuously throughout the match. The .NET Core SignalR Hub as a central point for all communication between the
+bots, game engine and the logger which are all SignalR clients.
+
+The game runner is used for both local matches as well as tournament matches. **Note**: The latest release of the game runner will be used to run the matches between contestants during the tournament.
+
+## Getting started
+### Prerequisites
+- .NET Core 3.1
+    - [Windows](https://dotnet.microsoft.com/download/dotnet/thank-you/sdk-3.1.407-windows-x64-installer)
+    - [Linux](https://docs.microsoft.com/en-us/dotnet/core/install/linux)
+    - [MacOS](https://dotnet.microsoft.com/download/dotnet/thank-you/sdk-3.1.407-macos-x64-installer)
+- NuGet Packages used
+    - Microsoft.AspNet.WebApi.Client
+    - Microsoft.AspNetCore.SignalR.Core
+    - Newtonsoft.Json
+
+TODO - Do we need to include installation steps for the operating systems?
+
+### Installation
+A run-all.sh is provided in the starter-pack which can be used to start up the different game components (Runner, Engine and Logger)
+The following files are also provided for each game component (eg. Runner)
+    - GameRunner.dll
+    - GameRunner.exe
+    - GameRunner.pdb
+
+#### Windows
+Simply double click on `run-all.sh` to start a new game.
+Alternatively, open the Command Prompt in the game runner directory and execute the following command:
+```
+app /build /run-all.sh
+```
+
+#### Linux
+Simply open a terminal in the game runner directory and execute the following command:
+```
+make
+```
+
+### Usage
+The `appsettings.json` file consists of all the necessary information required to run a match. The config file is already present when the starter pack is downloaded and will have default values for each of its fields. When running a match locally the correct values have to be set in the config.
+
+The `appsettings.json` has the following fields:
+- `Logging` - This section pertains to different levels of logging used within SignalR, for more information please visit https://docs.microsoft.com/en-us/aspnet/core/signalr/diagnostics?view=aspnetcore-3.1
+    - `LogLevel`
+        - `Default`: `Information`
+        - `Microsoft`: `Warning`
+        - `Microsoft.Hosting.Lifetime`: `Information`,
+        - `Microsoft.AspNetCore.SignalR`: `Information`,
+        - `Microsoft.AspNetCore.Http.Connections`: `Information`
+
+- `AllowedHosts`: `*` - This allows client connections from any host
+
+- `RunnerConfig`
+    - `ClientCount`: 16 - This is the number of bots that is expected to connect for the game
+    - `MaxRounds`: 2000 - This is the max number of rounds (ticks) before the game will end
+    - `ComponentTimeoutInMS`: 60000 - After the runner starts up, the Engine and Logger must connect to the before this timeout is reached or the runner will shutdown
+
+Not all of these fields need to be changed, as stated above, the starter pack will come with default values for these fields. The starter pack will always contain the latest version of the runner, as well as the runner`s configuration.
+
+All that needs to change for a local match are the following:
+- `ClientCount`
+- `MaxRounds`
+
+Once the correct fields are set a match can be run. Once again, a run-all.sh is provided to assist.
+#### Windows
+Simply double click on `run-all.sh` to start up a match.
+Alternatively, open the Command Prompt in the game runner directory and execute the following command:
+```
+app /build /run-all.sh
+```
+
+TODO - update how games can be started in Linux and MacOS
+
+#### Linux
+Simply open a terminal in the game runner directory and execute the following command:
+```
+make run
+```
+
+## Additional languages
+The game runner currently supports four languages, however, it can be easily extended to support more. The following five languages are currently supported:
+- .Net Core (C#)
+- Python
+- Javascript
+- Java
+- CPP
+
+The starter bots for each of these languages can be found [here](../starter-bots/).
+
+## Runner Actions
+The game runner allows for the following actions to take place between the runner and the bot
+
+### From Runner
+Register - This process requires an access token and a nickname for the bot to be registered with the runner. This action is done automatically from the runner once the bots connects to the SignalR Hub
+PlayerConsumed - This serves as a notice when a bot has been consumed, which means it will no longer be active
+PublishGameState - Once every tick a gameState will be sent to all active bots via this action
+GameComplete - Once the game completes, this action will be used to notify active bots with the final gameState before disconnecting all active bots
+
+### To Runner
+SendPlayerAction - This is where the bots sends an action to the runner each tick to be processed by the game engine, please note that only one action will be acknowledged per tick for a bot, any 
+                    subsequent actions will be ignored until the next tick whereafter new actions will be accepted. (Basically, only send an action after receiving the gameState)

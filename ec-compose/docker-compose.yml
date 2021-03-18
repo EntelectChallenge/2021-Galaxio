@@ -1,0 +1,33 @@
+version: "3.9"
+services:
+  runner:
+    build: ../game-runner/
+    networks:
+      - network   
+    environment:
+      BOT_COUNT: 4
+    ports:
+      - "5000:5000"
+  engine:
+    build: ../game-engine
+    networks:
+      - network 
+    environment:
+      RunnerIp: runner
+      LOG_LEVEL: info
+      BOT_COUNT: 4
+    depends_on:
+      - "runner"
+      - "logger"
+  logger:
+    build: ../game-logger
+    networks:
+      - network
+    environment:
+      RUNNER_IPV4: runner
+      MATCH_STATUS_FILE: matchState.log
+      GAME_COMPLETE_FILE: gameComplete.log
+    depends_on:
+      - "runner"
+networks:
+  network:
