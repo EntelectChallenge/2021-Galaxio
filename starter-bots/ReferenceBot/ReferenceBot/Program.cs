@@ -48,11 +48,7 @@ namespace NETCoreBot
                             "Disconnect",
                             (Id) =>
                             {
-                                Console.WriteLine("Disconnected:");
-
-                                connection.StopAsync();
-                                connection.DisposeAsync();
-                                return;
+                                OnDisconnect(connection);
                             });
                         connection.On<Guid>(
                             "Registered",
@@ -90,6 +86,12 @@ namespace NETCoreBot
                                     gameState.PlayerGameObjects.Add(GameObject.FromStateList(Guid.Parse(id), state));
                                 }
                                 botService.SetGameState(gameState);
+                                var alive = botService.ComputeNextPlayerAction(botService.GetPlayerAction());
+                                if (!alive)
+                                {
+                                    OnDisconnect(connection);
+                                }
+                                connection.InvokeAsync("SendPlayerAction", botService.GetPlayerAction());
                             });
 
                         var token = Environment.GetEnvironmentVariable("REGISTRATION_TOKEN");
@@ -97,23 +99,22 @@ namespace NETCoreBot
 
                         Thread.Sleep(1000);
                         Console.WriteLine($"Registering with the runner: {token}");
-                        connection.SendAsync("Register", token, "RefNickName");
-
-                        while (connection.State == HubConnectionState.Connected)
-                        {
-                            Thread.Sleep(30);
-                            Console.WriteLine($"ConState: {connection.State}");
-                            Console.WriteLine($"Bot: {botService.GetBot()?.Id.ToString()}");
-                            var bot = botService.GetBot();
-                            if (bot == null)
-                            {
-                                continue;
-                            }
-
-                            botService.ComputeNextPlayerAction(botService.GetPlayerAction());
-                            connection.InvokeAsync("SendPlayerAction", botService.GetPlayerAction());
-                        }
+                        connection.SendAsync("Register", token, "BossBot2");
                     });
+            while (connection.State == HubConnectionState.Connected)
+            {
+                continue;
+            }
+            Console.WriteLine("Stopping.");
+        }
+
+        private static void OnDisconnect(HubConnection connection)
+        {
+            Console.WriteLine("Disconnected:");
+
+            connection.StopAsync();
+            connection.DisposeAsync();
+            return;
         }
     }
 }

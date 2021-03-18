@@ -4,7 +4,7 @@ stages:
 
 variables:
   ENGINE_VERSION: 2021.0.0
-  DOCKER_REGISTRY: $AWS_GAME_DOCKER_REPOSITORY
+  DOCKER_REGISTRY: NOT_SET
   REGION: $AWS_DEFAULT_REGION
 
   DOCKER_TLS_CERTDIR: ""
@@ -15,14 +15,17 @@ build:engine:
   image: mcr.microsoft.com/dotnet/core/sdk:3.1
   tags:
     - aws
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+    - if: '$CI_COMMIT_BRANCH == "release"'
+      when: on_success
   script: 
     - dotnet publish --configuration Release --output ./publish/
   artifacts:
     paths:
        - ./publish/*
     expire_in: 1 hour
-  only:
-    - master
 
 deploy:engine:
   stage: deploy
@@ -32,6 +35,17 @@ deploy:engine:
   needs: ["build:engine"]
   tags:
     - aws
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: on_success
+      variables:
+        DEPLOYMENT_ROLE: $AWS_STAGING_CI_ROLE_ARN
+        DOCKER_REGISTRY: $AWS_STAGING_GAME_DOCKER_REPOSITORY
+    - if: '$CI_COMMIT_BRANCH == "release"'
+      when: on_success
+      variables:
+        DEPLOYMENT_ROLE: $AWS_PROD_CI_ROLE_ARN
+        DOCKER_REGISTRY: $AWS_PROD_GAME_DOCKER_REPOSITORY
   variables:
     APP_NAME: engine
   services:
@@ -40,9 +54,14 @@ deploy:engine:
     - amazon-linux-extras install docker
     - aws --version
     - docker --version
+    - echo "===== assuming permissions => ${DEPLOYMENT_ROLE} ====="
+    - KST=(`aws sts assume-role --role-arn ${DEPLOYMENT_ROLE} --role-session-name "deployment-${CI_COMMIT_TAG}" --query '[Credentials.AccessKeyId,Credentials.SecretAccessKey,Credentials.SessionToken]' --output text`)
+    - unset AWS_SECURITY_TOKEN
+    - export AWS_ACCESS_KEY_ID=${KST[0]}
+    - export AWS_SECRET_ACCESS_KEY=${KST[1]}
+    - export AWS_SESSION_TOKEN=${KST[2]}
+    - export AWS_SECURITY_TOKEN=${KST[2]}
   script:
     - docker build -t $DOCKER_REGISTRY/$APP_NAME:$ENGINE_VERSION . 
     - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
     - docker push $DOCKER_REGISTRY/$APP_NAME:$ENGINE_VERSION
-  only:
-    - master

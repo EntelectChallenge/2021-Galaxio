@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NETCoreBot.Enums;
+using Newtonsoft.Json;
 
 namespace NETCoreBot.Services
 {
@@ -15,6 +16,7 @@ namespace NETCoreBot.Services
         private bool _afterburnerOn = false;
         private PlayerAction lastAction;
         private int timeSinceLastAction;
+        private GameObject _target;
 
         public BotService()
         {
@@ -37,86 +39,58 @@ namespace NETCoreBot.Services
             _bot = bot;
         }
 
-        public void ComputeNextPlayerAction(PlayerAction playerAction)
+        public bool ComputeNextPlayerAction(PlayerAction playerAction)
         {
-            var searchRadius = _bot.Size + _searchRadiusModifier;
-            var foodInRange = new List<GameObject>();
-            var wormHoleInRange = new List<GameObject>();
-            var largerPlayerInRange = new List<GameObject>();
-            var smallerPlayerInRange = new List<GameObject>();
             var actionId = 1; // always move forward
             var heading = 90;
 
-
-            if (searchRadius > _bot.Size + 200)
+            if (!_gameState.PlayerGameObjects.Exists(b => b.Id == _bot.Id))
             {
-                _searchRadiusModifier = 200;
-                searchRadius = _bot.Size + 50;
+                Console.WriteLine("I am no longer in the game state, and have been consumed");
+                return false;
             }
 
-            if (_gameState.GameObjects == null)
+            if (_target == null)
             {
-                Console.WriteLine("No game objects");
-                return;
-            }
+                Console.WriteLine("No Current Target, resolving new target");
 
-            foreach (var go in _gameState.GameObjects.Where(go => distance(go) < searchRadius))
-            {
-                switch (go.GameObjectType)
-                {
-                    case Enums.ObjectTypes.Food:
-                        foodInRange.Add(go);
-                        break;
-                    case ObjectTypes.Wormhole:
-                        wormHoleInRange.Add(go);
-                        break;
-                }
-            }
-
-            foreach (var go in _gameState.PlayerGameObjects.Where(go => distance(go) < searchRadius))
-            {
-                if (go.Id == _bot.Id)
-                {
-                    break;
-                }
-
-                if (go.Size >= _bot.Size)
-                {
-                    largerPlayerInRange.Add(go);
-                }
-                else
-                {
-                    smallerPlayerInRange.Add(go);
-                }
-            }
-
-            Console.WriteLine(
-                $"[{_bot.Id.ToString().Substring(0, 4)}] OOI: {largerPlayerInRange.Count} Larger Players, {smallerPlayerInRange.Count} Smaller Players, {foodInRange.Count} Food");
-
-            if (largerPlayerInRange.Count > 0)
-            {
-                heading = GetAttackerResolution(_bot, largerPlayerInRange.First(), foodInRange);
-
-                if (_bot.Size > 10)
-                {
-                    actionId = 3;
-                    _afterburnerOn = true;
-                }
-                Console.WriteLine("Running");
-            }
-            else if (smallerPlayerInRange.Count > 0)
-            {
-                heading = GetDirection(_bot, smallerPlayerInRange.First());
-                Console.WriteLine("Chasing Smaller Player");
-            }
-            else if (foodInRange.Count > 0)
-            {
-                heading = GetDirection(_bot, foodInRange.First());
-                Console.WriteLine("Going for a Feeding");
+                heading = ResolveNewTarget();
             }
             else
             {
-                _searchRadiusModifier += 100;
+                var targetWithNewValues = _gameState.GameObjects.FirstOrDefault(go => go.Id == _target.Id) ??
+                    _gameState.PlayerGameObjects.FirstOrDefault(go => go.Id == _target.Id);
+
+                if (targetWithNewValues == default)
+                {
+                    Console.WriteLine("Old Target Invalid, resolving new target");
+                    heading = ResolveNewTarget();
+                }
+                else
+                {
+                    Console.WriteLine("Previous Target exists, updating resolution");
+                    _target = targetWithNewValues;
+
+                    if (_target.Size < _bot.Size)
+                    {
+                        heading = GetDirection(_bot, _target);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Previous Target larger than me, resolving new target");
+                        heading = ResolveNewTarget();
+                    }
+                }
+            }
+
+            var distanceFromWorldCenter = GetDistanceBetween(
+                new GameObject
+                {
+                    Position = _gameState.World.CenterPoint
+                });
+
+            if (distanceFromWorldCenter + (1.5 * _bot.Size) > _gameState.World.Radius)
+            {
                 heading = GetDirection(
                     _bot,
                     new GameObject
@@ -127,14 +101,7 @@ namespace NETCoreBot.Services
                             Y = 0
                         }
                     });
-                Console.WriteLine(
-                    $"Couldn't find anything, going to the center. Increased Search radius to: {_bot.Size + _searchRadiusModifier}");
-            }
-
-            if (_bot.Size < 10 && _afterburnerOn)
-            {
-                _afterburnerOn = false;
-                actionId = 4;
+                Console.WriteLine("Near the edge, going to the center");
             }
 
             playerAction.Action = actionId;
@@ -146,27 +113,79 @@ namespace NETCoreBot.Services
             _playerAction = playerAction;
 
             Console.WriteLine("Player action:" + playerAction.Action + ":" + playerAction.Heading);
-            Console.WriteLine("Position:" + _bot.Position.X + ":" + _bot.Position.Y);
+            return true;
         }
 
-        private int GetAttackerResolution(GameObject bot, GameObject attacker, List<GameObject> foodInRange)
+        private int ResolveNewTarget()
         {
-            var closestFood = foodInRange.OrderBy(distance).FirstOrDefault();
+            int heading;
+            var nearestFood = _gameState.GameObjects.Where(go => go.GameObjectType == ObjectTypes.Food)
+                .OrderBy(GetDistanceBetween)
+                .FirstOrDefault();
+            var nearestPlayer = _gameState.PlayerGameObjects.Where(bot => bot.Id != _bot.Id).OrderBy(GetDistanceBetween).First();
+            var nearestWormhole = _gameState.GameObjects.Where(go => go.GameObjectType == ObjectTypes.Wormhole)
+                .OrderBy(GetDistanceBetween)
+                .FirstOrDefault();
+
+            var directionToNearestPlayer = GetDirection(_bot, nearestPlayer);
+            var directionToNearestFood = GetDirection(_bot, nearestFood);
+            Console.WriteLine(JsonConvert.SerializeObject(_bot));
+            Console.WriteLine(JsonConvert.SerializeObject(nearestPlayer));
+            if (nearestPlayer.Size > _bot.Size)
+            {
+                heading = GetAttackerResolution(_bot, nearestPlayer, nearestFood);
+            }
+            else if (nearestPlayer.Size < _bot.Size)
+            {
+                heading = GetDirection(_bot, nearestPlayer);
+                _target = nearestPlayer;
+                Console.WriteLine("Chasing Smaller Player");
+            }
+            else if (nearestFood != null)
+            {
+                heading = GetDirection(_bot, nearestFood);
+                _target = nearestFood;
+                Console.WriteLine("Going for a Feeding");
+            }
+            else
+            {
+                heading = GetDirection(
+                    _bot,
+                    new GameObject
+                    {
+                        Position = new Position
+                        {
+                            X = 0,
+                            Y = 0
+                        }
+                    });
+                Console.WriteLine("Couldn't find anything, going to the center");
+            }
+
+            return heading;
+        }
+
+        private int GetAttackerResolution(GameObject bot, GameObject attacker, GameObject closestFood)
+        {
             if (closestFood == null)
             {
                 return GetOppositeDirection(bot, attacker);
             }
 
-            var distanceToAttacker = distance(attacker);
-            var distanceBetweenAttackerAndFood = distance(attacker, closestFood);
+            var distanceToAttacker = GetDistanceBetween(attacker);
+            var distanceBetweenAttackerAndFood = GetDistanceBetween(attacker, closestFood);
+
+            Console.WriteLine($"AtkSpd: {attacker.Speed}, DistAtk: {distanceToAttacker}, DistAtkAndFood: {distanceBetweenAttackerAndFood}, Resolution: {(distanceToAttacker > attacker.Speed )}{( distanceBetweenAttackerAndFood > distanceToAttacker)}");
 
             if (distanceToAttacker > attacker.Speed &&
                 distanceBetweenAttackerAndFood > distanceToAttacker)
             {
+                Console.WriteLine("Atk is far, going for food");
                 return GetDirection(_bot, closestFood);
             }
             else
             {
+                Console.WriteLine("Running");
                 return GetOppositeDirection(bot, attacker);
             }
         }
@@ -178,9 +197,7 @@ namespace NETCoreBot.Services
 
         private int GetDirection(GameObject bot, GameObject gameObject)
         {
-            Console.WriteLine($"Getting heading from me to {gameObject.Position.X}:{gameObject.Position.Y}");
-            var cartesianDegrees = ToDegrees(
-                Math.Atan2(gameObject.Position.Y - bot.Position.Y, gameObject.Position.X - bot.Position.X));
+            var cartesianDegrees = ToDegrees(Math.Atan2(gameObject.Position.Y - bot.Position.Y, gameObject.Position.X - bot.Position.X));
             return cartesianDegrees = (cartesianDegrees + 360) % 360;
         }
 
@@ -189,16 +206,16 @@ namespace NETCoreBot.Services
             return (int) (v * (180 / Math.PI));
         }
 
-        private double distance(GameObject bot, GameObject go)
+        private double GetDistanceBetween(GameObject bot, GameObject go)
         {
             var triangleX = Math.Abs(bot.Position.X - go.Position.X);
             var triangleY = Math.Abs(bot.Position.Y - go.Position.Y);
             return (int) Math.Ceiling(Math.Sqrt(triangleX * triangleX + triangleY * triangleY));
         }
 
-        private double distance(GameObject go)
+        private double GetDistanceBetween(GameObject go)
         {
-            return distance(_bot, go);
+            return GetDistanceBetween(_bot, go);
         }
 
         public GameState GetGameState()

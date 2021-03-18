@@ -236,13 +236,14 @@ namespace Logger.Services
 
             var logTime = $"{DateTime.Now:yyyy-MM-dd_hh-mm-ss}";
 
+            var stateFileName = matchStatusFileName ?? $"{loggerConfig.GameStateLogFileName}_{logTime}";
             var gameStateFilePath = WriteFileWithSerialisation(
-                $"{matchStatusFileName ?? loggerConfig.GameStateLogFileName}_{logTime}",
+                stateFileName,
                 finalLogDir,
                 gameStateDtoLog,
-                string.IsNullOrWhiteSpace(matchStatusFileName));
+                false);
             var gameCompleteFilePath = WriteFileWithSerialisation(
-                $"{gameCompleteFileName ?? string.Format("{0}_{1}_GameComplete", loggerConfig.GameStateLogFileName, logTime)}",
+                $"{gameCompleteFileName ?? $"{loggerConfig.GameStateLogFileName}_{logTime}_GameComplete"}",
                 finalLogDir,
                 gameCompletePayload,
                 string.IsNullOrWhiteSpace(gameCompleteFileName));
