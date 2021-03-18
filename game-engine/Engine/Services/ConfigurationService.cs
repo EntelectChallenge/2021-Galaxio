@@ -16,12 +16,12 @@ namespace Engine.Services
             engineOptions.Value.CopyPropertiesTo(Value);
 
             var botCountEnvarString = Environment.GetEnvironmentVariable("BOT_COUNT");
-            if (string.IsNullOrWhiteSpace(botCountEnvarString))
+            var botCount = Value.BotCount;
+            if (!string.IsNullOrWhiteSpace(botCountEnvarString))
             {
-                return;
+                botCount = int.Parse(botCountEnvarString);
             }
 
-            var botCount = int.Parse(botCountEnvarString);
             Value.BotCount = botCount;
             Value.MapRadius = botCount * Value.MapRadiusRatio;
             Value.MaxRounds = Value.MapRadius;
