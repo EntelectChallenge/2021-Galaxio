@@ -14,7 +14,7 @@ In essence, the runner will start up, connect to its components, and then wait u
 
 Matches are run asynchronously to bot commands, meaning that the runner and engine to not wait for commands from your bot to process the next state of the world (much like a modern multiplayer game).
 
-The runner and engine can also be configured to expect as many bots in a match as you like. More information on configuring the Runner can be found [here](./game-runner/README.md), and configuration options for the Engine can be found [here](./game-engine/README.md)
+The runner and engine can also be configured to expect as many bots in a match as you like. More information on configuring the Runner can be found [here](./game-runner/README.md#-configuration-options), and configuration options for the Engine can be found [here](./game-engine/README.md)
 
 ## Step 1 - Implementing SignalR and getting connected to the runner.
 

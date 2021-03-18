@@ -115,20 +115,6 @@ The following five languages are known supported:
 
 The starter bots for each of these languages can be found [here](../starter-bots/)
 
-## Runner Actions
-The game runner allows for the following actions to take place between the runner and the bot
-
-### From Runner
-Register - This process requires an access token and a nickname for the bot to be registered with the runner. This action is done automatically from the runner once the bots connects to the SignalR Hub
-PlayerConsumed - This serves as a notice when a bot has been consumed, which means it will no longer be active
-PublishGameState - Once every tick a gameState will be sent to all active bots via this action
-GameComplete - Once the game completes, this action will be used to notify active bots with the final gameState before disconnecting all active bots
-
-### To Runner
-SendPlayerAction - This is where the bots sends an action to the runner each tick to be processed by the game engine, please note that only one action will be acknowledged per tick for a bot, any 
-                    subsequent actions will be ignored until the next tick whereafter new actions will be accepted. (Basically, only send an action after receiving the gameState)
-
-
 ## Runner Events
 
 These are SignalR events that your bot can subscribe to.
@@ -175,3 +161,14 @@ Abuse of your SignalR connection is defined under the following:
     - Attempts to flood or otherwise DOS the Hub with requests
     - Attempts to spoof your commands as that of another bot
     - Attempts to spoof your connection as that of another bot
+
+## Configuration options
+
+The runner will respect the following environment variables to change how you play the game:
+
+- `BOT_COUNT`
+    - This sets the expected amount of bots to connect before a game will be run
+- `COMPONENT_TIMEOUT`
+    - How long should the runner wait for the logger and engine to boot up before shutting down with a failure (in milliseconds)
+- `BOT_TIMEOUT`
+    - How long should the runner wait for all bots to connect before shutting down with a failure (in milliseconds)
