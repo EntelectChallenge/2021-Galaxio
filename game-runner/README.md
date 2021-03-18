@@ -83,6 +83,7 @@ All that needs to change for a local match are the following:
 - `MaxRounds`
 
 Once the correct fields are set a match can be run. Once again, a run-all.sh is provided to assist.
+
 #### Windows
 Simply double click on `run-all.sh` to start up a match.
 Alternatively, open the Command Prompt in the game runner directory and execute the following command:
@@ -99,14 +100,20 @@ make run
 ```
 
 ## Additional languages
-The game runner currently supports four languages, however, it can be easily extended to support more. The following five languages are currently supported:
+
+This year's game runs over SignalR Core, meaning any client library that implements this can be used. If there is a library for your language, you are free to use it!
+
+However, if one of these languages is not currently in our support list [here](../starter-bots/README.md#-supported-languages), please open an Issue on github for your language and we will guide you on the process from there.
+
+
+The following five languages are known supported:
 - .Net Core (C#)
 - Python
 - Javascript
 - Java
 - CPP
 
-The starter bots for each of these languages can be found [here](../starter-bots/).
+The starter bots for each of these languages can be found [here](../starter-bots/)
 
 ## Runner Actions
 The game runner allows for the following actions to take place between the runner and the bot
@@ -120,3 +127,51 @@ GameComplete - Once the game completes, this action will be used to notify activ
 ### To Runner
 SendPlayerAction - This is where the bots sends an action to the runner each tick to be processed by the game engine, please note that only one action will be acknowledged per tick for a bot, any 
                     subsequent actions will be ignored until the next tick whereafter new actions will be accepted. (Basically, only send an action after receiving the gameState)
+
+
+## Runner Events
+
+These are SignalR events that your bot can subscribe to.
+
+### Mandatory:
+
+- "Registered"
+    - 
+- "ReceiveGameState" 
+    - Once every tick a gameState will be sent to all active bots via this action
+- "Disconnect"
+    - This will be called once your bot has been consumed and has been informed. You are required to disconnect your signalR connection at this point.
+    - All further interactions from your bot will be ignored from this point onwards.
+
+### Optional
+
+- "GameComplete" 
+    - Once the game completes, this action will be used to notify active bots with the final gameState before disconnecting all active bots
+- "PlayerConsumed"
+    - This serves as a notice when a bot has been consumed, which means it will no longer be active
+
+
+## Runner Actions
+
+These are endpoints available to your bot, with which it can communicate to the runner. All of these should be implemented to have a functioning bot.
+
+- "Register"
+    - This process requires an access token and a nickname. This should be called as soon as your SignalR connection to the runner is established.
+- "SendPlayerAction"
+    - This allows your player to issue its next action back to the runner.
+
+
+## Abuse of SignalR
+
+Repeated abuse of your SignalR connection to the Runner will result in your bot being blacklisted.
+
+Once blacklisted, your bot will not be run in simulation matches for a time.
+After this time has elapsed, your bot will be allowed to run as normal again.
+
+If your bot is repeatedly marked for abuse, your bot will stand to be disqualified from running in tournaments.
+
+Abuse of your SignalR connection is defined under the following:
+    - Failure to disconnect in a reasonable time after the runner has informed your bot of a disconnect request
+    - Attempts to flood or otherwise DOS the Hub with requests
+    - Attempts to spoof your commands as that of another bot
+    - Attempts to spoof your connection as that of another bot
