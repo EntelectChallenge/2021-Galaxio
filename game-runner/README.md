@@ -159,10 +159,10 @@ After this time has elapsed, your bot will be allowed to run as normal again.
 If your bot is repeatedly marked for abuse, your bot will stand to be disqualified from running in tournaments.
 
 Abuse of your SignalR connection is defined under the following:
-    - Failure to disconnect in a reasonable time after the runner has informed your bot of a disconnect request
-    - Attempts to flood or otherwise DOS the Hub with requests
-    - Attempts to spoof your commands as that of another bot
-    - Attempts to spoof your connection as that of another bot
+- Failure to disconnect in a reasonable time after the runner has informed your bot of a disconnect request
+- Attempts to flood or otherwise DOS the Hub with requests
+- Attempts to spoof your commands as that of another bot
+- Attempts to spoof your connection as that of another bot
 
 ## Configuration options
 
