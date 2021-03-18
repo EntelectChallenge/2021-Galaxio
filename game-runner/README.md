@@ -12,9 +12,10 @@
             - [Windows](#windows-1)
             - [Linux](#linux-1)
     - [Additional languages](#additional-languages)
+    - [Runner Events](#runner-events)
     - [Runner Actions](#runner-actions)
-        - [From Runner](#from-runner)
-        - [To Runner](#to-runner)
+    - [Abuse of SignalR](#abuse-of-signalr)
+    - [Configuration Options](#configuration-options)
 
 ## Overview
 The game runner is responsible for facilitating a match between bots. It can be seen as a proxy that relays information between the [bots](../starter-bots/README.md) and the [game engine](../game-engine/README.md). The game engine produces state information which the game runner passes onto the bots. Once the bots have processed the state and produced a command, that command is then consumed by the game runner and passed back to the game engine, this process continues until the match ends.
@@ -172,3 +173,5 @@ The runner will respect the following environment variables to change how you pl
     - How long should the runner wait for the logger and engine to boot up before shutting down with a failure (in milliseconds)
 - `BOT_TIMEOUT`
     - How long should the runner wait for all bots to connect before shutting down with a failure (in milliseconds)
+
+When these are not specified, the values present in `appsettings.json` will be used.
