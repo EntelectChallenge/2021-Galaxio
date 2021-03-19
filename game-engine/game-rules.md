@@ -6,34 +6,33 @@ In a match your **1** ship will compete against a **variable** amount of other s
 
 
 ## Contents
-- [The Game](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#the-game)
-    - [The Map](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#the-map)
-        - [Structure](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-structure)
-        - [Visibility](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-visibility)
-        - [Boundary](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-boundary)
-    - [Objects](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#objects)
-        - [Food](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-food)
-        - [Wormholes](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-wormholes)
-        - [Gas Clouds](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-gas-clouds)
-        - [Asteroid Clouds](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-asteroid-clouds)
-    - [The Ship](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#the-ship)
-        - [Speed](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-speed)
-        - [Afterburner](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-afterburner)
-    - [Collisions](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#collisions)
-        - [Ship to ship collisions](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-ship-to-ship-collisions)
-        - [Food collisions](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-food-collisions)
-    - [Game Tick Payload](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#game-tick-payload)
-        - [GameObjects](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-gameobjects)
-    - [The Commands](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#the-commands)
-        - [All Commands](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#all-commands)
-        - [Command Structure](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#command-structure)
-        - [Command: FORWARD](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#command:-forward)
-        - [Command: STOP](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#command:-stop)
-        - [Command: START_AFTERBURNER](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#command:-start_afterburner)
-        - [Command: STOP_AFTERBURNER](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#command:-stop_afterburner)
-    - [Endgame](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#endgame)
-    - [Scoring](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#scoring)
-    - [Math](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#math)
+- [The Game](#the-game)
+    - [The Map](#the-map)
+        - [Visibility](#-visibility)
+        - [Boundary](#-boundary)
+    - [Objects](#objects)
+        - [Food](#-food)
+        - [Wormholes](#-wormholes)
+        - [Gas Clouds](#-gas-clouds)
+        - [Asteroid Fields](#-asteroid-fields)
+    - [The Ship](#the-ship)
+        - [Speed](#-speed)
+        - [Afterburner](#-afterburner)
+    - [Collisions](#collisions)
+        - [Ship to ship collisions](#-ship-to-ship-collisions)
+        - [Food collisions](#-food-collisions)
+    - [Game Tick Payload](#game-tick-payload)
+        - [GameObjects](#-gameobjects)
+    - [The Commands](#the-commands)
+        - [All Commands](#all-commands)
+        - [Command Structure](#command-structure)
+        - [Command: FORWARD](#command:-forward)
+        - [Command: STOP](#command:-stop)
+        - [Command: START_AFTERBURNER](#command:-start_afterburner)
+        - [Command: STOP_AFTERBURNER](#command:-stop_afterburner)
+    - [Endgame](#endgame)
+    - [Scoring](#scoring)
+    - [Math](#math)
 
 ## The Map
 
@@ -217,29 +216,67 @@ The Runner will only allow a maximum of one command per tick.
 Your commands will be lodged against your bot for processing during the next tick. These actions are processed under FIFO (First in, First out), meaning your earliest sent action is processed first. However, this list of actions should only ever be one command long.
 
 This means that your bot does not need to send a command each tick and can take as long as it wants to send each command. Feel free to run all the clever artificial intelligence you like! Just note that other bots might still be sending commands as there is no wait time.
+
+Example Payload in JSON with types:
+```jsonc
+{
+  "playerId": "00000000-0000-0000-0000-000000000000",//string or GUID, not required
+  "action": 1,// int,
+  "heading": 45 // int
+}
+```
+
+
 ### Command: FORWARD
 
 ```
-FORWARD 238
+FORWARD: 1, 238
 ```
 
 This command will start moving your ship in the direction provided in degrees.
 
+Example Payload in JSON with types:
+```jsonc
+{
+  "playerId": "00000000-0000-0000-0000-000000000000",//string or GUID, not required
+  "action": 1,// int,
+  "heading": 45 // int
+}
+```
+
 ### Command: STOP
 
 ```
-STOP
+STOP: 2
 ```
 
 This command will stop moving your ship this game tick until another movement command is issued. There is no interia, therefore your ship stops instantly.
 
+Example Payload in JSON with types:
+```jsonc
+{
+  "playerId": "00000000-0000-0000-0000-000000000000",//string or GUID, not required
+  "action": 2,// int,
+  "heading": 0 // int
+}
+```
+
 ### Command: START_AFTERBURNER
 
 ```
-START_AFTERBURNER
+START_AFTERBURNER: 3
 ```
 
 This command activates your ship's afterburner. Note, your speed is only used when you're currently moving in a direction, therefore afterburner will only have an effect when you are moving. The cost of afterburner will always be in effec, if the after burner effect is active.
+
+Example Payload in JSON with types:
+```jsonc
+{
+  "playerId": "00000000-0000-0000-0000-000000000000",//string or GUID, not required
+  "action": 3,// int,
+  "heading": 0 // int
+}
+```
 
 ### Command: STOP_AFTERBURNER
 
@@ -248,6 +285,15 @@ STOP_AFTERBURNER
 ```
 
 This command deactivates your ship's afterburner.
+
+Example Payload in JSON with types:
+```jsonc
+{
+  "playerId": "00000000-0000-0000-0000-000000000000",//string or GUID, not required
+  "action": 4,// int,
+  "heading": 0 // int
+}
+```
 
 ## Endgame
 

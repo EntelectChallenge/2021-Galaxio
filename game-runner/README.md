@@ -12,9 +12,10 @@
             - [Windows](#windows-1)
             - [Linux](#linux-1)
     - [Additional languages](#additional-languages)
+    - [Runner Events](#runner-events)
     - [Runner Actions](#runner-actions)
-        - [From Runner](#from-runner)
-        - [To Runner](#to-runner)
+    - [Abuse of SignalR](#abuse-of-signalr)
+    - [Configuration Options](#configuration-options)
 
 ## Overview
 The game runner is responsible for facilitating a match between bots. It can be seen as a proxy that relays information between the [bots](../starter-bots/README.md) and the [game engine](../game-engine/README.md). The game engine produces state information which the game runner passes onto the bots. Once the bots have processed the state and produced a command, that command is then consumed by the game runner and passed back to the game engine, this process continues until the match ends.
@@ -34,8 +35,6 @@ The game runner is used for both local matches as well as tournament matches. **
     - Microsoft.AspNet.WebApi.Client
     - Microsoft.AspNetCore.SignalR.Core
     - Newtonsoft.Json
-
-TODO - Do we need to include installation steps for the operating systems?
 
 ### Installation
 A run-all.sh is provided in the starter-pack which can be used to start up the different game components (Runner, Engine and Logger)
@@ -83,6 +82,7 @@ All that needs to change for a local match are the following:
 - `MaxRounds`
 
 Once the correct fields are set a match can be run. Once again, a run-all.sh is provided to assist.
+
 #### Windows
 Simply double click on `run-all.sh` to start up a match.
 Alternatively, open the Command Prompt in the game runner directory and execute the following command:
@@ -99,24 +99,78 @@ make run
 ```
 
 ## Additional languages
-The game runner currently supports four languages, however, it can be easily extended to support more. The following five languages are currently supported:
+
+This year's game runs over SignalR Core, meaning any client library that implements this can be used. If there is a library for your language, you are free to use it!
+
+However, if one of these languages is not currently in our support list [here](../starter-bots/README.md#-supported-languages), please open an Issue on github for your language and we will guide you on the process from there.
+
+
+The following five languages are known supported:
 - .Net Core (C#)
 - Python
 - Javascript
 - Java
 - CPP
 
-The starter bots for each of these languages can be found [here](../starter-bots/).
+The starter bots for each of these languages can be found [here](../starter-bots/)
+
+## Runner Events
+
+These are SignalR events that your bot can subscribe to.
+
+### Mandatory:
+
+- "Registered"
+    - This will be called once your bot has successfully registered with the runner for the match
+    - This will provide you with the ID the runner will use to represent your bot in the game state during a match
+- "ReceiveGameState" 
+    - Once every tick a gameState will be sent to all active bots via this action
+- "Disconnect"
+    - This will be called once your bot has been consumed and has been informed. You are required to disconnect your signalR connection at this point.
+    - All further interactions from your bot will be ignored from this point onwards.
+
+### Optional
+
+- "GameComplete" 
+    - Once the game completes, this action will be used to notify active bots with the final gameState before disconnecting all active bots
+- "PlayerConsumed"
+    - This serves as a notice when a bot has been consumed, which means it will no longer be active
+
 
 ## Runner Actions
-The game runner allows for the following actions to take place between the runner and the bot
 
-### From Runner
-Register - This process requires an access token and a nickname for the bot to be registered with the runner. This action is done automatically from the runner once the bots connects to the SignalR Hub
-PlayerConsumed - This serves as a notice when a bot has been consumed, which means it will no longer be active
-PublishGameState - Once every tick a gameState will be sent to all active bots via this action
-GameComplete - Once the game completes, this action will be used to notify active bots with the final gameState before disconnecting all active bots
+These are endpoints available to your bot, with which it can communicate to the runner. All of these should be implemented to have a functioning bot.
 
-### To Runner
-SendPlayerAction - This is where the bots sends an action to the runner each tick to be processed by the game engine, please note that only one action will be acknowledged per tick for a bot, any 
-                    subsequent actions will be ignored until the next tick whereafter new actions will be accepted. (Basically, only send an action after receiving the gameState)
+- "Register"
+    - This process requires an access token and a nickname. This should be called as soon as your SignalR connection to the runner is established.
+- "SendPlayerAction"
+    - This allows your player to issue its next action back to the runner.
+
+
+## Abuse of SignalR
+
+Repeated abuse of your SignalR connection to the Runner will result in your bot being blacklisted.
+
+Once blacklisted, your bot will not be run in simulation matches for a time.
+After this time has elapsed, your bot will be allowed to run as normal again.
+
+If your bot is repeatedly marked for abuse, your bot will stand to be disqualified from running in tournaments.
+
+Abuse of your SignalR connection is defined under the following:
+- Failure to disconnect in a reasonable time after the runner has informed your bot of a disconnect request
+- Attempts to flood or otherwise DOS the Hub with requests
+- Attempts to spoof your commands as that of another bot
+- Attempts to spoof your connection as that of another bot
+
+## Configuration options
+
+The runner will respect the following environment variables to change how you play the game:
+
+- `BOT_COUNT`
+    - This sets the expected amount of bots to connect before a game will be run
+- `COMPONENT_TIMEOUT`
+    - How long should the runner wait for the logger and engine to boot up before shutting down with a failure (in milliseconds)
+- `BOT_TIMEOUT`
+    - How long should the runner wait for all bots to connect before shutting down with a failure (in milliseconds)
+
+When these are not specified, the values present in `appsettings.json` will be used.
