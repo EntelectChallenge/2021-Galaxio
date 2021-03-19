@@ -36,8 +36,6 @@ The game runner is used for both local matches as well as tournament matches. **
     - Microsoft.AspNetCore.SignalR.Core
     - Newtonsoft.Json
 
-TODO - Do we need to include installation steps for the operating systems?
-
 ### Installation
 A run-all.sh is provided in the starter-pack which can be used to start up the different game components (Runner, Engine and Logger)
 The following files are also provided for each game component (eg. Runner)
