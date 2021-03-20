@@ -33,6 +33,9 @@ In a match your **1** ship will compete against a **variable** amount of other s
     - [Endgame](#endgame)
     - [Scoring](#scoring)
     - [The Math](#the-math)
+        - [Distance Calculation](#distance-calculation)
+        - [Direction Calculation](#direction-calculation)
+        - [Rounding](#rounding)
 
 ## The Map
 
