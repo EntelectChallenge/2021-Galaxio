@@ -8,31 +8,31 @@ In a match your **1** ship will compete against a **variable** amount of other s
 ## Contents
 - [The Game](#the-game)
     - [The Map](#the-map)
-        - [Visibility](#-visibility)
-        - [Boundary](#-boundary)
+        - [Visibility](#visibility)
+        - [Boundary](#boundary)
     - [Objects](#objects)
-        - [Food](#-food)
-        - [Wormholes](#-wormholes)
-        - [Gas Clouds](#-gas-clouds)
-        - [Asteroid Fields](#-asteroid-fields)
+        - [Food](#food)
+        - [Wormholes](#wormholes)
+        - [Gas Clouds](#gas-clouds)
+        - [Asteroid Fields](#asteroid-fields)
     - [The Ship](#the-ship)
-        - [Speed](#-speed)
-        - [Afterburner](#-afterburner)
+        - [Speed](#speed)
+        - [Afterburner](#afterburner)
     - [Collisions](#collisions)
-        - [Ship to ship collisions](#-ship-to-ship-collisions)
-        - [Food collisions](#-food-collisions)
+        - [Ship to ship collisions](#ship-to-ship-collisions)
+        - [Food collisions](#food-collisions)
     - [Game Tick Payload](#game-tick-payload)
-        - [GameObjects](#-gameobjects)
+        - [GameObjects](#gameObjects)
     - [The Commands](#the-commands)
         - [All Commands](#all-commands)
         - [Command Structure](#command-structure)
-        - [Command: FORWARD](#command:-forward)
-        - [Command: STOP](#command:-stop)
-        - [Command: START_AFTERBURNER](#command:-start_afterburner)
-        - [Command: STOP_AFTERBURNER](#command:-stop_afterburner)
+        - [Command: FORWARD](#command:-FORWARD)
+        - [Command: STOP](#command:-STOP)
+        - [Command: START_AFTERBURNER](#command:-START_AFTERBURNER)
+        - [Command: STOP_AFTERBURNER](#command:-STOP_AFTERBURNER)
     - [Endgame](#endgame)
     - [Scoring](#scoring)
-    - [Math](#math)
+    - [The Math](#the-math)
 
 ## The Map
 
@@ -93,7 +93,9 @@ Your bot is playing as a circular spaceship, that feeds on planetary objects and
 * **Size** - your ship will start with a radius of 10.
 * **Heading** - your ship will move in this direction, between 0 and 359 degrees.
 
-Your ship will not begin moving until you have given it a command to do so. Once given the first forward command it will continue moving at the ship's current speed and heading until the stop command is given.
+Your ship will not begin moving until you have given it a command to do so. Once given the first forward command it will continue moving at the ship's current speed and heading until the stop command is given. 
+
+There is a minimum size of 5 for the ship if at any point the size is smaller than this the ship will be removed from the map and considered eliminated.
 
 ### Speed
 
@@ -369,8 +371,34 @@ corrected_direction_inDegrees = (cartesianDegrees + 360) % 360;
 -150° will be corrected to 210° which when referring to the image of the cartesian plane above is in the same position, note the placement of a negative heading would be clockwise from 0°.*
 
 
+### Rounding
+Due to the fact that the engine uses integers to represent the world rounding had to be applied to certain calculations that gave decimal results. 
+
+The game engine uses C# which has the following rounding rules, any value less than or equal to 0.5 will always round to exactly zero and any value greater than 0.5 will always round to exactly one. In a few cases that will be listed below the engine rounds to ceiling in which case the value will always be rounded up to the next integer, so 0.1 would be go to 1. 
+
+A summary of those rounding decisions can be seen below:
+
+####Distance between objects:
+Uses standard Math.Round rounding.
+
+####Position calculation:
+Uses standard Math.Round rounding
+
+####Speed calculations:
+Uses Math.Ceiling rounding as there is a minimum that it shouldn't go below.
+
+####Size calculations:
+Uses Math.Ceiling rounding as there is a minimum that it shouldn't go below.
+
+Note when doing rounding calculations in your own bot check the rules of the specific language as some use different rounding strategies to C#. 
+
+No language will have a advantage as only integer values are used in commands and the engine calculates all bot commands in the same way.
+This section is for reference to check that your bot calculations and decision points align with how the engine works.
+
+
+
 **NB:
 The values provided within this readme are subject to change during balance phases.
-Entelect will endevour to maintain this readme file. However the most accurate values can be found in appsettings.json within the game-engine folder.**
+Entelect will endeavour to maintain this readme file. However the most accurate values can be found in appsettings.json within the game-engine folder.**
 
 
