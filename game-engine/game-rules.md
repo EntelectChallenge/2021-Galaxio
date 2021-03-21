@@ -377,7 +377,13 @@ corrected_direction_inDegrees = (cartesianDegrees + 360) % 360;
 ### Rounding
 Due to the fact that the engine uses integers to represent the world rounding had to be applied to certain calculations that gave decimal results. 
 
-The game engine uses C# which has the following rounding rules, any value less than or equal to 0.5 will always round to exactly zero and any value greater than 0.5 will always round to exactly one. In a few cases that will be listed below the engine rounds to ceiling in which case the value will always be rounded up to the next integer, so 0.1 would be go to 1. 
+The game engine uses C# which uses round-to-even or banker's rounding, which means any value that is at exactly at the midpoint ( x.5 ), will be rounded to the nearest even number.
+Take the following examples:
+
+- 23.5 will become 24
+- 24.5 will become 24
+- 24.6 will become 25
+- 25.5 will become 26
 
 A summary of those rounding decisions can be seen below:
 
