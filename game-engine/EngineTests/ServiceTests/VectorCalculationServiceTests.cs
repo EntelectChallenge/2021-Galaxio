@@ -1,4 +1,5 @@
-﻿using Domain.Models;
+﻿using System;
+using Domain.Models;
 using Engine.Services;
 using NUnit.Framework;
 
@@ -257,6 +258,61 @@ namespace EngineTests.ServiceTests
             var distanceBetween = vectorCalculatorService.GetDistanceBetween(bot1.Position, bot2.Position);
 
             Assert.True(distanceBetween == 10);
+        }
+        
+        [Test]
+        public void GivenBotSpeedHeading_WhenQuadrantMath_ThenReturnPosition()
+        {
+            var bot1 = FakeGameObjectProvider.GetBotAt(new Position(0, 0));
+            var newPosition1 = vectorCalculatorService.GetPositionFrom(bot1.Position, 40, 177);
+
+            Assert.AreEqual(-40,newPosition1.X );
+            Assert.AreEqual(2,newPosition1.Y );
+
+            var bot2 = FakeGameObjectProvider.GetBotAt(new Position(0, 0));
+            var newPosition2 = vectorCalculatorService.GetPositionFrom(bot1.Position, 1, 177);
+            for (var i = 1; i <40; i++)
+            {
+                newPosition2 = vectorCalculatorService.GetPositionFrom(newPosition2, 1, 177);
+                Console.WriteLine(i);
+            }
+            
+            Assert.AreEqual(-40,newPosition2.X );
+            Assert.AreEqual(0,newPosition2.Y );
+
+            var bot3 = FakeGameObjectProvider.GetBotAt(new Position(0, 0));
+            var newPosition3 = vectorCalculatorService.GetPositionFrom(bot3.Position, 60, 321);
+
+            Assert.AreEqual(47,newPosition3.X );
+            Assert.AreEqual(-38,newPosition3.Y );
+
+            var bot4 = FakeGameObjectProvider.GetBotAt(new Position(0, 0));
+            var newPosition4 = vectorCalculatorService.GetPositionFrom(bot4.Position, 1, 321);
+            
+            for (var i = 1; i <60; i++)
+            {
+                newPosition4 = vectorCalculatorService.GetPositionFrom(newPosition4, 1, 321);
+            }
+            
+            Assert.AreEqual(60,newPosition4.X );
+            Assert.AreEqual(-60,newPosition4.Y );
+            
+            var bot5 = FakeGameObjectProvider.GetBotAt(new Position(0, 0));
+            var newPosition5 = vectorCalculatorService.GetPositionFrom(bot5.Position, 33, 217);
+
+            Assert.AreEqual(-26,newPosition5.X );
+            Assert.AreEqual(-20,newPosition5.Y );
+
+            var bot6 = FakeGameObjectProvider.GetBotAt(new Position(0, 0));
+            var newPosition6 = vectorCalculatorService.GetPositionFrom(bot6.Position, 1, 217);
+            
+            for (var i = 1; i <33; i++)
+            {
+                newPosition6 = vectorCalculatorService.GetPositionFrom(newPosition6, 1, 217);
+            }
+            
+            Assert.AreEqual(-33,newPosition6.X );
+            Assert.AreEqual(-33,newPosition6.Y );
         }
     }
 }
