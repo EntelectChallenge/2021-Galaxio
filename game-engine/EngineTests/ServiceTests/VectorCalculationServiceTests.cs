@@ -1,4 +1,6 @@
-﻿using Domain.Models;
+﻿using System;
+using System.Linq;
+using Domain.Models;
 using Engine.Services;
 using NUnit.Framework;
 
@@ -22,7 +24,7 @@ namespace EngineTests.ServiceTests
             var bot = FakeGameObjectProvider.GetBotAt(new Position(0, 0));
             var action = FakeGameObjectProvider.GetForwardPlayerActionInHeading(bot.Id, 0);
 
-            var finalPosition = vectorCalculatorService.MovePlayerObject(new Position(0, 0), 10, action.Heading);
+            var finalPosition = vectorCalculatorService.GetPointFrom(new Position(0, 0), 10, action.Heading);
 
             Assert.True(finalPosition.X == 10);
             Assert.True(finalPosition.Y == 0);
@@ -34,7 +36,7 @@ namespace EngineTests.ServiceTests
             var bot = FakeGameObjectProvider.GetBotAt(new Position(0, 0));
             var action = FakeGameObjectProvider.GetForwardPlayerActionInHeading(bot.Id, 180);
 
-            var finalPosition = vectorCalculatorService.MovePlayerObject(new Position(0, 0), 10, action.Heading);
+            var finalPosition = vectorCalculatorService.GetPointFrom(new Position(0, 0), 10, action.Heading);
 
             Assert.True(finalPosition.X == -10);
             Assert.True(finalPosition.Y == 0);
@@ -46,7 +48,7 @@ namespace EngineTests.ServiceTests
             var bot = FakeGameObjectProvider.GetBotAt(new Position(0, 0));
             var action = FakeGameObjectProvider.GetForwardPlayerActionInHeading(bot.Id, 90);
 
-            var finalPosition = vectorCalculatorService.MovePlayerObject(new Position(0, 0), 10, action.Heading);
+            var finalPosition = vectorCalculatorService.GetPointFrom(new Position(0, 0), 10, action.Heading);
 
             Assert.True(finalPosition.X == 0);
             Assert.True(finalPosition.Y == 10);
@@ -58,7 +60,7 @@ namespace EngineTests.ServiceTests
             var bot = FakeGameObjectProvider.GetBotAt(new Position(0, 0));
             var action = FakeGameObjectProvider.GetForwardPlayerActionInHeading(bot.Id, 270);
 
-            var finalPosition = vectorCalculatorService.MovePlayerObject(new Position(0, 0), 10, action.Heading);
+            var finalPosition = vectorCalculatorService.GetPointFrom(new Position(0, 0), 10, action.Heading);
 
             Assert.True(finalPosition.X == 0);
             Assert.True(finalPosition.Y == -10);
@@ -70,7 +72,7 @@ namespace EngineTests.ServiceTests
             var bot = FakeGameObjectProvider.GetBotAt(new Position(0, 0));
             var action = FakeGameObjectProvider.GetForwardPlayerActionInHeading(bot.Id, 45);
 
-            var finalPosition = vectorCalculatorService.MovePlayerObject(new Position(0, 0), 10, action.Heading);
+            var finalPosition = vectorCalculatorService.GetPointFrom(new Position(0, 0), 10, action.Heading);
 
             Assert.True(finalPosition.X == 7);
             Assert.True(finalPosition.Y == 7);
@@ -82,7 +84,7 @@ namespace EngineTests.ServiceTests
             var bot = FakeGameObjectProvider.GetBotAt(new Position(0, 0));
             var action = FakeGameObjectProvider.GetForwardPlayerActionInHeading(bot.Id, 135);
 
-            var finalPosition = vectorCalculatorService.MovePlayerObject(new Position(0, 0), 10, action.Heading);
+            var finalPosition = vectorCalculatorService.GetPointFrom(new Position(0, 0), 10, action.Heading);
 
             Assert.True(finalPosition.X == -7);
             Assert.True(finalPosition.Y == 7);
@@ -94,7 +96,7 @@ namespace EngineTests.ServiceTests
             var bot = FakeGameObjectProvider.GetBotAt(new Position(0, 0));
             var action = FakeGameObjectProvider.GetForwardPlayerActionInHeading(bot.Id, 225);
 
-            var finalPosition = vectorCalculatorService.MovePlayerObject(new Position(0, 0), 10, action.Heading);
+            var finalPosition = vectorCalculatorService.GetPointFrom(new Position(0, 0), 10, action.Heading);
 
             Assert.True(finalPosition.X == -7);
             Assert.True(finalPosition.Y == -7);
@@ -106,7 +108,7 @@ namespace EngineTests.ServiceTests
             var bot = FakeGameObjectProvider.GetBotAt(new Position(0, 0));
             var action = FakeGameObjectProvider.GetForwardPlayerActionInHeading(bot.Id, 315);
 
-            var finalPosition = vectorCalculatorService.MovePlayerObject(new Position(0, 0), 10, action.Heading);
+            var finalPosition = vectorCalculatorService.GetPointFrom(new Position(0, 0), 10, action.Heading);
 
             Assert.True(finalPosition.X == 7);
             Assert.True(finalPosition.Y == -7);
@@ -257,6 +259,58 @@ namespace EngineTests.ServiceTests
             var distanceBetween = vectorCalculatorService.GetDistanceBetween(bot1.Position, bot2.Position);
 
             Assert.True(distanceBetween == 10);
+        }
+
+        [Test]
+        public void GivenKnownPoints_WhenCollectCollisionDetectionPointsAt45Degrees_ThenReturnCorrectPoints()
+        {
+            var startPosition = new Position(0, 0);
+            var endPoint = new Position(4, 4);
+            var heading = 45;
+
+            var result = vectorCalculatorService.CollectCollisionDetectionPointsAlongPath(startPosition, endPoint, heading);
+
+            Assert.Contains(new Position(1, 1), result);
+            Assert.Contains(new Position(2, 2), result);
+            Assert.Contains(new Position(3, 3), result);
+            Assert.Contains(new Position(4, 4), result);
+            Assert.Contains(endPoint, result);
+            Assert.AreEqual(4, result.Count);
+        }
+
+        [Test]
+        public void GivenKnownPoints_WhenCollectCollisionDetectionPointsWhenHeadingIs18_ThenReturnCorrectPoints()
+        {
+            var startPosition = new Position(0, 0);
+            var endPoint = new Position(6, 2);
+            var heading = 18;
+
+            var result = vectorCalculatorService.CollectCollisionDetectionPointsAlongPath(startPosition, endPoint, heading);
+
+            Assert.Contains(new Position(1, 0), result);
+            Assert.Contains(new Position(2, 1), result);
+            Assert.Contains(new Position(3, 1), result);
+            Assert.Contains(new Position(4, 1), result);
+            Assert.Contains(new Position(5, 2), result);
+            Assert.Contains(new Position(6, 2), result);
+            Assert.Contains(endPoint, result);
+            Assert.AreEqual(6, result.Count);
+        }
+
+        [Test]
+        public void GivenKnownPoints_WhenCollectCollisionDetectionPointsWhenMovementIsReduced_ThenReturnCorrectPoints()
+        {
+            var startPosition = new Position(3, 1);
+            var endPoint = new Position(6, 2);
+            var heading = 18;
+
+            var result = vectorCalculatorService.CollectCollisionDetectionPointsAlongPath(startPosition, endPoint, heading);
+
+            Assert.Contains(new Position(4, 1), result);
+            Assert.Contains(new Position(5, 2), result);
+            Assert.Contains(new Position(6, 2), result);
+            Assert.Contains(endPoint, result);
+            Assert.AreEqual(3, result.Count);
         }
     }
 }

@@ -1,9 +1,10 @@
-﻿using Domain.Models;
+﻿using System.Collections.Generic;
+using Domain.Models;
 
 namespace Engine.Interfaces
 {
     public interface ITickProcessingService
     {
-        void SimulateTick(BotObject bot);
+        void SimulateTick(IList<BotObject> bot);
     }
 }

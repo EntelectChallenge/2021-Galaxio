@@ -103,7 +103,7 @@ namespace Engine.Handlers.Collisions
             {
                 botObject.CurrentHeading = vectorCalculatorService.ReverseHeading(botObject.CurrentHeading);
                 botObject.CurrentAction.Heading = botObject.CurrentHeading;
-                botObject.Position = vectorCalculatorService.MovePlayerObject(botObject.Position, spacing, botObject.CurrentHeading);
+                botObject.Position = vectorCalculatorService.GetPointFrom(botObject.Position, spacing, botObject.CurrentHeading);
             }
         }
     }

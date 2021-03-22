@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Domain.Models;
 using Engine.Handlers.Collisions;
 using Engine.Handlers.Interfaces;
@@ -33,7 +34,7 @@ namespace EngineTests.ServiceTests
             vectorCalculatorServiceMock = new Mock<IVectorCalculatorService>();
             tickProcessingService = new TickProcessingService(
                 collisionHandlerResolver,
-                vectorCalculatorServiceMock.Object,
+                VectorCalculatorService,
                 WorldStateService,
                 collisionService);
         }
@@ -44,15 +45,18 @@ namespace EngineTests.ServiceTests
             SetupFakeWorld(true, false);
             var bot = FakeGameObjectProvider.GetBotWithActions();
             bot.IsMoving = true;
-            vectorCalculatorServiceMock.Setup(x => x.MovePlayerObject(It.IsAny<Position>(), It.IsAny<int>(), It.IsAny<int>()))
-                .Returns(VectorCalculatorService.MovePlayerObject(bot.Position, 1, bot.CurrentHeading));
+            vectorCalculatorServiceMock.Setup(x => x.GetPointFrom(It.IsAny<Position>(), It.IsAny<int>(), It.IsAny<int>()))
+                .Returns(VectorCalculatorService.GetPointFrom(bot.Position, 1, bot.CurrentHeading));
             vectorCalculatorServiceMock.Setup(x => x.IsInWorldBounds(It.IsAny<Position>(), It.IsAny<int>())).Returns(true);
-
-            Assert.DoesNotThrow(() => tickProcessingService.SimulateTick(bot));
-
-            vectorCalculatorServiceMock.Verify(
-                x => x.MovePlayerObject(It.IsAny<Position>(), It.IsAny<int>(), It.IsAny<int>()),
-                Times.AtLeast(2));
+            vectorCalculatorServiceMock
+                .Setup(vcs => vcs.CollectCollisionDetectionPointsAlongPath(It.IsAny<Position>(), It.IsAny<Position>(), It.IsAny<int>()))
+                .Returns(
+                    new List<Position>{
+                        new Position(0, 0),
+                        new Position(1, 1),
+                        new Position(2, 2)
+                    });
+            Assert.DoesNotThrow(() => tickProcessingService.SimulateTick(WorldStateService.GetPlayerBots()));
         }
 
         [Test]
@@ -61,22 +65,21 @@ namespace EngineTests.ServiceTests
             SetupFakeWorld(true, false);
             var food = PlaceFoodAtPosition(new Position(0, 1));
             var bot = FakeGameObjectProvider.GetBotWithActions();
+            bot.CurrentHeading = 90;
             bot.Speed = 20;
             bot.IsMoving = true;
-            vectorCalculatorServiceMock.Setup(x => x.MovePlayerObject(It.IsAny<Position>(), It.IsAny<int>(), It.IsAny<int>()))
-                .Returns(VectorCalculatorService.MovePlayerObject(bot.Position, 1, bot.CurrentHeading));
-            vectorCalculatorServiceMock.Setup(x => x.IsInWorldBounds(It.IsAny<Position>(), It.IsAny<int>())).Returns(true);
 
-            vectorCalculatorServiceMock.Setup(x => x.HasOverlap(food, bot)).Returns(true);
+            tickProcessingService = new TickProcessingService(
+                collisionHandlerResolver,
+                VectorCalculatorService,
+                WorldStateService,
+                collisionService);
 
-            Assert.DoesNotThrow(() => tickProcessingService.SimulateTick(bot));
+            Assert.DoesNotThrow(() => tickProcessingService.SimulateTick(WorldStateService.GetPlayerBots()));
 
-            vectorCalculatorServiceMock.Verify(
-                x => x.MovePlayerObject(It.IsAny<Position>(), It.IsAny<int>(), It.IsAny<int>()),
-                Times.Exactly(19));
-
-            Assert.True(bot.Size == 11);
-            Assert.True(bot.Speed == 19);
+            Assert.AreEqual(11, bot.Size);
+            Assert.AreEqual(19, bot.Speed);
+            Assert.AreEqual(new Position(0,19),bot.Position);
         }
 
         [Test]
@@ -87,16 +90,9 @@ namespace EngineTests.ServiceTests
             bot1.IsMoving = true;
             bot2.IsMoving = true;
 
-            vectorCalculatorServiceMock.Setup(x => x.MovePlayerObject(It.IsAny<Position>(), It.IsAny<int>(), It.IsAny<int>()))
-                .Returns(new Position());
-            vectorCalculatorServiceMock.Setup(x => x.IsInWorldBounds(It.IsAny<Position>(), It.IsAny<int>())).Returns(true);
-            vectorCalculatorServiceMock.Setup(x => x.HasOverlap(bot2, bot1)).Returns(true);
-
-            Assert.DoesNotThrow(() => tickProcessingService.SimulateTick(bot1));
+            Assert.DoesNotThrow(() => tickProcessingService.SimulateTick(WorldStateService.GetPlayerBots()));
             Assert.False(WorldStateService.GameObjectIsInWorldState(bot1.Id));
             Assert.True(WorldStateService.GameObjectIsInWorldState(bot2.Id));
-
-            vectorCalculatorServiceMock.Verify(x => x.MovePlayerObject(It.IsAny<Position>(), It.IsAny<int>(), It.IsAny<int>()), Times.Once);
         }
     }
 }

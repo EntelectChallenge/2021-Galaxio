@@ -38,7 +38,8 @@ namespace EngineTests.ServiceTests
             {
                 new ForwardActionHandler(),
                 new StartAfterburnerActionHandler(WorldStateService, EngineConfigFake),
-                new StopAfterburnerActionHandler(WorldStateService)
+                new StopAfterburnerActionHandler(WorldStateService),
+                new StopActionHandler()
             };
             actionHandlerResolver = new ActionHandlerResolver(actionHandlers);
             actionService = new ActionService(WorldStateService, actionHandlerResolver);
@@ -55,13 +56,22 @@ namespace EngineTests.ServiceTests
         {
             SetupFakeWorld(true, false);
             var food = FakeGameObjectProvider.GetFoodAt(new Position(60, 0));
+            var id = Guid.NewGuid();
             var bot = new BotObject
             {
-                Id = Guid.NewGuid(),
+                Id = id,
                 Size = 60,
                 Position = new Position(0, 0),
                 Speed = 4,
-                GameObjectType = GameObjectType.Player
+                GameObjectType = GameObjectType.Player,
+                PendingActions = new List<PlayerAction>(),
+                CurrentAction = new PlayerAction
+                {
+                    Action = PlayerActions.Stop,
+                    Heading = 0,
+                    PlayerId = id
+                },
+                Score = 0
             };
 
             WorldStateService.AddBotObject(bot);
@@ -75,9 +85,9 @@ namespace EngineTests.ServiceTests
                 secondAction
             };
 
-            engineService.ProcessTickForBot(bot);
-            WorldStateService.ApplyAfterTickStateChanges();
-            Assert.DoesNotThrow(() => engineService.ProcessTickForBot(bot));
+            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));;
+            Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
+            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));;
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
 
             Assert.AreEqual(59, bot.Size);
@@ -111,9 +121,9 @@ namespace EngineTests.ServiceTests
                 thirdAction
             };
 
-            engineService.ProcessTickForBot(bot);
-            WorldStateService.ApplyAfterTickStateChanges();
-            Assert.DoesNotThrow(() => engineService.ProcessTickForBot(bot));
+            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));;
+            Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
+            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));;
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
 
             var activeEffect = WorldStateService.GetActiveEffectByType(bot.Id, Effects.Afterburner);
@@ -123,13 +133,79 @@ namespace EngineTests.ServiceTests
             Assert.AreEqual(0, bot.Position.Y);
             Assert.AreEqual(12, bot.Position.X);
 
-            Assert.DoesNotThrow(() => engineService.ProcessTickForBot(bot));
+            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
 
             Assert.AreEqual(58, bot.Size);
             Assert.AreEqual(8, bot.Speed);
             Assert.AreEqual(0, bot.Position.Y);
             Assert.AreEqual(20, bot.Position.X);
+        }
+
+        [Test]
+        public void GivenForwardAction_WhenHeadingIs45AndSpeedIs6_ThenDistanceTraveledIs6()
+        {
+            SetupFakeWorld(true, false);
+            var bot = FakeGameObjectProvider.GetBotAt(new Position(0, 0));
+            bot.PendingActions = new List<PlayerAction>
+            {
+                new PlayerAction
+                {
+                    Action = PlayerActions.Forward,
+                    Heading = 45,
+                    PlayerId = bot.Id
+                }
+            };
+            bot.Speed = 6;
+
+            var expectedEndpoint = new Position(4, 4);
+            var expectedDistance = VectorCalculatorService.GetDistanceBetween(bot.Position, expectedEndpoint);
+
+            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));
+            Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
+
+            var resultingDistanceTravelled = VectorCalculatorService.GetDistanceBetween(new Position(0, 0), bot.Position);
+            var varianceBetweenExpectedAndActualEndpoint = VectorCalculatorService.GetDistanceBetween(bot.Position, expectedEndpoint);
+
+            Assert.AreEqual(6, expectedDistance);
+
+            Assert.AreEqual(expectedEndpoint, bot.Position);
+            Assert.AreEqual(expectedDistance, resultingDistanceTravelled);
+            Assert.Zero(varianceBetweenExpectedAndActualEndpoint);
+        }
+
+        [Test]
+        public void GivenForwardAction_WhenHeadingIs18AndSpeedIs6_ThenDistanceTraveledIs6()
+        {
+            SetupFakeWorld(true, false);
+            var bot = FakeGameObjectProvider.GetBotAt(new Position(0, 0));
+            bot.PendingActions = new List<PlayerAction>
+            {
+                new PlayerAction
+                {
+                    Action = PlayerActions.Forward,
+                    Heading = 23,
+                    PlayerId = bot.Id
+                }
+            };
+            bot.Speed = 6;
+
+            var expectedEndpoint = new Position(6, 2);
+            var expectedDistance = VectorCalculatorService.GetDistanceBetween(bot.Position, expectedEndpoint);
+
+            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));
+            Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
+
+            var resultingDistanceTravelled = VectorCalculatorService.GetDistanceBetween(new Position(0, 0), bot.Position);
+            var varianceBetweenExpectedAndActualEndpoint = VectorCalculatorService.GetDistanceBetween(bot.Position, expectedEndpoint);
+
+            var pathPoints = VectorCalculatorService.CollectCollisionDetectionPointsAlongPath(new Position(0, 0), new Position(6, 2), 23);
+
+            Assert.AreEqual(6, expectedDistance);
+
+            Assert.AreEqual(expectedEndpoint, bot.Position);
+            Assert.AreEqual(expectedDistance, resultingDistanceTravelled);
+            Assert.Zero(varianceBetweenExpectedAndActualEndpoint);
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
@@ -32,8 +33,6 @@ namespace GameRunner
             this.runnerConfig = runnerConfig.RunnerConfig;
             applicationLifetime = appLifetime;
             this.cloudIntegrationService = cloudIntegrationService;
-
-            CheckConnectedBots();
         }
 
         #region Runner endpoints
@@ -56,11 +55,11 @@ namespace GameRunner
         /// <returns></returns>
         public async Task Register(Guid token, string nickName)
         {
-            Logger.LogInfo("Hub.Register", $"Registering Bot with token {token}");
+            Logger.LogInfo("Hub.Register", $"Registering Bot with nickname {nickName}");
             runnerStateService.RegisterClient(Context.ConnectionId, nickName, Clients.Client(Context.ConnectionId));
             runnerStateService.AddRegistrationToken(Context.ConnectionId, token);
             Guid? botId = runnerStateService.GetBotGuidFromConnectionId(Context.ConnectionId);
-            Logger.LogDebug("Hub.Register", $"Issuing registration back to bot with id {botId.ToString()}");
+            Logger.LogDebug("Hub.Register", $"Issuing registration back to {nickName} with id {botId.ToString()}");
             await Clients.Client(Context.ConnectionId).SendAsync("Registered", botId);
             await CheckForGameStartConditions();
         }
@@ -281,30 +280,6 @@ namespace GameRunner
 
             runnerStateService.StartGame();
             await cloudIntegrationService.Announce(CloudCallbackType.Started);
-        }
-
-        private void CheckConnectedBots()
-        {
-            componentTimer = new Timer();
-            componentTimer.Interval = runnerConfig.BotTimeoutInMs;
-            componentTimer.Elapsed += BotConnectionTimeout;
-            componentTimer.AutoReset = false;
-            componentTimer.Enabled = true;
-        }
-
-        private void BotConnectionTimeout(object sender, ElapsedEventArgs e)
-        {
-            if (runnerStateService.TotalConnections < runnerConfig.BotCount)
-            {
-                Logger.LogDebug(
-                    "RunnerHub.OnBotConnectionTimeout",
-                    string.Format(
-                        "{0} out of {1} bots connected in time, runner is shutting down.",
-                        runnerStateService.TotalConnections,
-                        runnerConfig.BotCount));
-                cloudIntegrationService.Announce(CloudCallbackType.Failed);
-                applicationLifetime.StopApplication();
-            }
         }
 
         #endregion
