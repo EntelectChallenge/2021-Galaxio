@@ -19,7 +19,7 @@ namespace GameRunner.Services
             // no-op
             Logger.LogDebug("CloudCallback", $"Cloud Callback called with {callbackType}");
             var cloudCallbackPayload = cloudCallbackFactory.Make(callbackType);
-            Logger.LogInfo("CloudCallback", $"Cloud Callback No-opped, Status: {cloudCallbackPayload.MatchStatus}");
+            Logger.LogDebug("CloudCallback", $"Cloud Callback No-opped, Status: {cloudCallbackPayload.MatchStatus}");
             return Task.CompletedTask;
         }
     }

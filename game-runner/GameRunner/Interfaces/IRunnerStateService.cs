@@ -25,7 +25,8 @@ namespace GameRunner.Interfaces
         void AddRegistrationToken(string connectionId, Guid token);
         string GetRegistrationToken(string botId);
         void StopApplication();
-        Dictionary<Guid, string> GetRegistrationTokens();        bool GetBotActionReceived(Guid id);
+        Dictionary<Guid, string> GetRegistrationTokens();
+        bool GetBotActionReceived(Guid id);
         void AddBotActionReceived(Guid id);
         void ClearBotActionsReceived();
     }

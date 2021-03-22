@@ -40,8 +40,7 @@ namespace EngineTests.HandlerTests
             List<GameObject> asteroidFields = state.AsteroidFields;
             var asteroidField = asteroidFields[0];
 
-            var bot = FakeGameObjectProvider.GetBotAt(
-                new Position(asteroidField.Position.X + asteroidField.Size + 5, asteroidField.Position.Y + asteroidField.Size + 5));
+            var bot = FakeGameObjectProvider.GetBotAt(asteroidField.Position);
 
             var handler = collisionHandlerResolver.ResolveHandler(asteroidField, bot);
             handler.ResolveCollision(asteroidField, bot);

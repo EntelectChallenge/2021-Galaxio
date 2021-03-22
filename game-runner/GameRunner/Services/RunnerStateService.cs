@@ -47,8 +47,6 @@ namespace GameRunner.Services
         {
             this.runnerConfig = runnerConfig.RunnerConfig;
             applicationLifetime = appLifetime;
-
-            CheckGameComponents();
         }
 
         public StateObject GetEngine() => gameEngine;
@@ -173,41 +171,6 @@ namespace GameRunner.Services
         public void ClearBotActionsReceived()
         {
             BotActionsReceived = new List<Guid>();
-        }
-
-        private void CheckGameComponents()
-        {
-            componentTimer = new Timer();
-            componentTimer.Interval = runnerConfig.ComponentTimeoutInMs;
-            componentTimer.Elapsed += ComponentsConnectionTimeout;
-            componentTimer.AutoReset = false;
-            componentTimer.Enabled = true;
-        }
-
-        private void ComponentsConnectionTimeout(object sender, ElapsedEventArgs e)
-        {
-            var componentTimedOut = false;
-            var components = new List<string>();
-
-            if (GetEngine() == default)
-            {
-                components.Add("GameEngine");
-                componentTimedOut = true;
-            }
-
-            if (GetLogger() == default)
-            {
-                components.Add("Logger");
-                componentTimedOut = true;
-            }
-
-            if (componentTimedOut)
-            {
-                Logger.LogDebug(
-                    "RunnerHub.OnComponentTimeout",
-                    string.Format("The following components did not connect before timeout: {0}", string.Join(", ", components.ToArray())));
-                StopApplication();
-            }
         }
     }
 }

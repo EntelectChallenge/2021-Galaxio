@@ -40,8 +40,7 @@ namespace EngineTests.HandlerTests
             List<GameObject> gasClouds = state.GasClouds;
             var gasCloud = gasClouds[0];
 
-            var bot = FakeGameObjectProvider.GetBotAt(
-                new Position(gasCloud.Position.X + gasCloud.Size + 5, gasCloud.Position.Y + gasCloud.Size + 5));
+            var bot = FakeGameObjectProvider.GetBotAt(gasCloud.Position);
 
             var handler = collisionHandlerResolver.ResolveHandler(gasCloud, bot);
             handler.ResolveCollision(gasCloud, bot);

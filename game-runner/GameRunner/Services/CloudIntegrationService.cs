@@ -25,7 +25,7 @@ namespace GameRunner.Services
         public async Task Announce(CloudCallbackType callbackType)
         {
             var cloudCallbackPayload = cloudCallbackFactory.Make(callbackType);
-            Logger.LogInfo("CloudCallback", $"Cloud Callback Initiated, Status: {cloudCallbackPayload.MatchStatus}");
+            Logger.LogInfo("CloudCallback", $"Cloud Callback Initiated, Status: {cloudCallbackPayload.MatchStatus}, Callback player Count: {cloudCallbackPayload.Players?.Count}");
             try
             {
                 var result = await httpClient.PostAsync(environmentService.ApiUrl, cloudCallbackPayload, new JsonMediaTypeFormatter());

@@ -74,7 +74,7 @@ namespace Engine.Services
                             continue;
                         }
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         Logger.LogDebug(
                             "Core.Startup",
@@ -215,7 +215,7 @@ namespace Engine.Services
                         $"Tried to inform runner of a disconnect but could not reach the runner.");
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Logger.LogDebug(
                     "Shutdown",

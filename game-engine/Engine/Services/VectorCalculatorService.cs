@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Domain.Models;
 using Domain.Services;
 using Engine.Interfaces;
@@ -7,7 +8,7 @@ namespace Engine.Services
 {
     public class VectorCalculatorService : IVectorCalculatorService
     {
-        public Position MovePlayerObject(Position startPosition, int distance, int heading)
+        public Position GetPointFrom(Position startPosition, int distance, int heading)
         {
             var resultingHeading = ConstrainHeading(heading);
             return QuadrantMath(startPosition, distance, resultingHeading);
@@ -58,6 +59,23 @@ namespace Engine.Services
         {
             heading += 180;
             return ConstrainHeading(heading);
+        }
+
+        public List<Position> CollectCollisionDetectionPointsAlongPath(Position startPosition, Position endPosition, int heading)
+        {
+            var steps = GetDistanceBetween(startPosition, endPosition);
+            var positions = new List<Position>();
+
+            for (var i = 1; i <= steps; i++)
+            {
+                var nextPosition = QuadrantMath(startPosition, i, heading);
+                if (!positions.Contains(nextPosition))
+                {
+                    positions.Add(nextPosition);
+                }
+            }
+
+            return positions;
         }
 
         private Position QuadrantMath(Position startPosition, int speed, int headingDegree)

@@ -95,7 +95,8 @@ namespace Engine.Services
         {
             Logger.LogInfo("Engine", $"Tick: {worldStateService.GetState().World.CurrentTick}, Player Count: {worldStateService.GetPlayerCount()}");
             IList<BotObject> bots = worldStateService.GetPlayerBots();
-            ApplyFirstPendingAction(bots);
+
+            SimulateTickForBots(bots);
 
             IList<BotObject> aliveBots = worldStateService.GetPlayerBots();
             IEnumerable<BotObject> botsForRemoval = bots.Where(bot => !aliveBots.Contains(bot));
@@ -115,6 +116,16 @@ namespace Engine.Services
             CheckWinConditions();
         }
 
+        public void SimulateTickForBots(IList<BotObject> bots)
+        {
+            foreach (var bot in bots)
+            {
+                actionService.ApplyActionToBot(bot);
+            }
+
+            tickProcessingService.SimulateTick(bots);
+        }
+
         private void CheckWinConditions()
         {
             if (worldStateService.GetState().World.CurrentTick >= engineConfig.MaxRounds)
@@ -132,21 +143,6 @@ namespace Engine.Services
             worldStateService.FinalisePlayerPlacements();
             HasWinner = true;
             Logger.LogInfo("WinCondition", $"We have a winner! Bot {worldStateService.GetPlayerBots().First().Id}");
-        }
-
-        private void ApplyFirstPendingAction(IList<BotObject> bots)
-        {
-            var result = Parallel.ForEach(bots, ProcessTickForBot);
-            while (!result.IsCompleted)
-            {
-                Thread.Sleep(1);
-            }
-        }
-
-        public void ProcessTickForBot(BotObject bot)
-        {
-            actionService.ApplyActionToBot(bot);
-            tickProcessingService.SimulateTick(bot);
         }
     }
 }
