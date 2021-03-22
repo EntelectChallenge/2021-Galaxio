@@ -20,6 +20,8 @@ namespace GameRunner
                 var provider = serviceScope.ServiceProvider;
                 var cloudIntegrationService = provider.GetRequiredService<ICloudIntegrationService>();
                 cloudIntegrationService.Announce(CloudCallbackType.Initializing);
+                var timerService = provider.GetRequiredService<ITimerService>();
+                timerService.StartTimeoutEvents();
                 host.Run();
             }
             catch (OperationCanceledException e)

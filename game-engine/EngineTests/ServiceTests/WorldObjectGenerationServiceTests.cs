@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Domain.Enums;
 using Domain.Models;
+using Engine.Models;
 using Engine.Services;
 using NUnit.Framework;
 
@@ -125,7 +126,7 @@ namespace EngineTests.ServiceTests
             Assert.AreEqual(
                 EngineConfigFake.Value.WorldFood.StartingFoodCount -
                 EngineConfigFake.Value.BotCount * EngineConfigFake.Value.WorldFood.PlayerSafeFood,
-                placedFoodList.Count);
+                placedFoodList.Count + 4);
         }
 
         [Test]
@@ -153,14 +154,14 @@ namespace EngineTests.ServiceTests
 
             for (var i = 0; i < foodList.Count; i++)
             {
-                var playerIndex = (int) Math.Floor(i / 2f);
+                var playerIndex = (int) Math.Floor((double)i / EngineConfigFake.Value.WorldFood.PlayerSafeFood);
                 var distanceBetween = VectorCalculatorService.GetDistanceBetween(positions[playerIndex], foodList[i].Position);
                 Assert.IsTrue(
                     EngineConfigFake.Value.StartingPlayerSize + EngineConfigFake.Value.WorldFood.MinSeparation <= distanceBetween);
                 Assert.IsTrue(distanceBetween <= EngineConfigFake.Value.WorldFood.MaxSeparation);
             }
 
-            Assert.AreEqual(8, foodList.Count);
+            Assert.AreEqual(EngineConfigFake.Value.WorldFood.PlayerSafeFood * EngineConfigFake.Value.BotCount, foodList.Count);
         }
 
         [Test]
@@ -186,16 +187,16 @@ namespace EngineTests.ServiceTests
 
             List<GameObject> foodList = worldObjectGenerationService.GeneratePlayerStartingFood(playerSeeds, new List<GameObject>());
 
-            for (var i = 0; i < foodList.Count; i++)
+            for (int i = 0; i < foodList.Count; i++)
             {
-                var playerIndex = (int) Math.Floor(i / 2f);
+                var playerIndex = (int) Math.Floor((double)i / EngineConfigFake.Value.WorldFood.PlayerSafeFood);
                 var distanceBetween = VectorCalculatorService.GetDistanceBetween(positions[playerIndex], foodList[i].Position);
                 Assert.IsTrue(
                     EngineConfigFake.Value.StartingPlayerSize + EngineConfigFake.Value.WorldFood.MinSeparation <= distanceBetween);
                 Assert.IsTrue(distanceBetween <= EngineConfigFake.Value.WorldFood.MaxSeparation);
             }
 
-            Assert.AreEqual(8, foodList.Count);
+            Assert.AreEqual(EngineConfigFake.Value.WorldFood.PlayerSafeFood * EngineConfigFake.Value.BotCount, foodList.Count);
         }
 
         [Test]

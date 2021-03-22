@@ -6,34 +6,36 @@ In a match your **1** ship will compete against a **variable** amount of other s
 
 
 ## Contents
-- [The Game](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#the-game)
-    - [The Map](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#the-map)
-        - [Structure](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-structure)
-        - [Visibility](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-visibility)
-        - [Boundary](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-boundary)
-    - [Objects](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#objects)
-        - [Food](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-food)
-        - [Wormholes](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-wormholes)
-        - [Gas Clouds](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-gas-clouds)
-        - [Asteroid Clouds](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-asteroid-clouds)
-    - [The Ship](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#the-ship)
-        - [Speed](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-speed)
-        - [Afterburner](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-afterburner)
-    - [Collisions](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#collisions)
-        - [Ship to ship collisions](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-ship-to-ship-collisions)
-        - [Food collisions](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-food-collisions)
-    - [Game Tick Payload](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#game-tick-payload)
-        - [GameObjects](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#-gameobjects)
-    - [The Commands](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#the-commands)
-        - [All Commands](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#all-commands)
-        - [Command Structure](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#command-structure)
-        - [Command: FORWARD](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#command:-forward)
-        - [Command: STOP](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#command:-stop)
-        - [Command: START_AFTERBURNER](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#command:-start_afterburner)
-        - [Command: STOP_AFTERBURNER](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#command:-stop_afterburner)
-    - [Endgame](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#endgame)
-    - [Scoring](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#scoring)
-    - [Math](https://github.com/EntelectChallenge/2021-Galaxio/blob/master/game-engine/game-rules.md#math)
+- [The Game](#the-game)
+    - [The Map](#the-map)
+        - [Visibility](#visibility)
+        - [Boundary](#boundary)
+    - [Objects](#objects)
+        - [Food](#food)
+        - [Wormholes](#wormholes)
+        - [Gas Clouds](#gas-clouds)
+        - [Asteroid Fields](#asteroid-fields)
+    - [The Ship](#the-ship)
+        - [Speed](#speed)
+        - [Afterburner](#afterburner)
+    - [Collisions](#collisions)
+        - [Ship to ship collisions](#ship-to-ship-collisions)
+        - [Food collisions](#food-collisions)
+    - [Game Tick Payload](#game-tick-payload)
+        - [GameObjects](#gameObjects)
+    - [The Commands](#the-commands)
+        - [All Commands](#all-commands)
+        - [Command Structure](#command-structure)
+        - [Command: FORWARD](#command:-FORWARD)
+        - [Command: STOP](#command:-STOP)
+        - [Command: START_AFTERBURNER](#command:-START_AFTERBURNER)
+        - [Command: STOP_AFTERBURNER](#command:-STOP_AFTERBURNER)
+    - [Endgame](#endgame)
+    - [Scoring](#scoring)
+    - [The Math](#the-math)
+        - [Distance Calculation](#distance-calculation)
+        - [Direction Calculation](#direction-calculation)
+        - [Rounding](#rounding)
 
 ## The Map
 
@@ -94,7 +96,9 @@ Your bot is playing as a circular spaceship, that feeds on planetary objects and
 * **Size** - your ship will start with a radius of 10.
 * **Heading** - your ship will move in this direction, between 0 and 359 degrees.
 
-Your ship will not begin moving until you have given it a command to do so. Once given the first forward command it will continue moving at the ship's current speed and heading until the stop command is given.
+Your ship will not begin moving until you have given it a command to do so. Once given the first forward command it will continue moving at the ship's current speed and heading until the stop command is given. 
+
+There is a minimum size of 5 for the ship if at any point the size is smaller than this the ship will be removed from the map and considered eliminated.
 
 ### Speed
 
@@ -217,29 +221,67 @@ The Runner will only allow a maximum of one command per tick.
 Your commands will be lodged against your bot for processing during the next tick. These actions are processed under FIFO (First in, First out), meaning your earliest sent action is processed first. However, this list of actions should only ever be one command long.
 
 This means that your bot does not need to send a command each tick and can take as long as it wants to send each command. Feel free to run all the clever artificial intelligence you like! Just note that other bots might still be sending commands as there is no wait time.
+
+Example Payload in JSON with types:
+```jsonc
+{
+  "playerId": "00000000-0000-0000-0000-000000000000",//string or GUID, not required
+  "action": 1,// int,
+  "heading": 45 // int
+}
+```
+
+
 ### Command: FORWARD
 
 ```
-FORWARD 238
+FORWARD: 1, 238
 ```
 
 This command will start moving your ship in the direction provided in degrees.
 
+Example Payload in JSON with types:
+```jsonc
+{
+  "playerId": "00000000-0000-0000-0000-000000000000",//string or GUID, not required
+  "action": 1,// int,
+  "heading": 45 // int
+}
+```
+
 ### Command: STOP
 
 ```
-STOP
+STOP: 2
 ```
 
 This command will stop moving your ship this game tick until another movement command is issued. There is no interia, therefore your ship stops instantly.
 
+Example Payload in JSON with types:
+```jsonc
+{
+  "playerId": "00000000-0000-0000-0000-000000000000",//string or GUID, not required
+  "action": 2,// int,
+  "heading": 0 // int
+}
+```
+
 ### Command: START_AFTERBURNER
 
 ```
-START_AFTERBURNER
+START_AFTERBURNER: 3
 ```
 
 This command activates your ship's afterburner. Note, your speed is only used when you're currently moving in a direction, therefore afterburner will only have an effect when you are moving. The cost of afterburner will always be in effec, if the after burner effect is active.
+
+Example Payload in JSON with types:
+```jsonc
+{
+  "playerId": "00000000-0000-0000-0000-000000000000",//string or GUID, not required
+  "action": 3,// int,
+  "heading": 0 // int
+}
+```
 
 ### Command: STOP_AFTERBURNER
 
@@ -248,6 +290,15 @@ STOP_AFTERBURNER
 ```
 
 This command deactivates your ship's afterburner.
+
+Example Payload in JSON with types:
+```jsonc
+{
+  "playerId": "00000000-0000-0000-0000-000000000000",//string or GUID, not required
+  "action": 4,// int,
+  "heading": 0 // int
+}
+```
 
 ## Endgame
 
@@ -323,8 +374,40 @@ corrected_direction_inDegrees = (cartesianDegrees + 360) % 360;
 -150° will be corrected to 210° which when referring to the image of the cartesian plane above is in the same position, note the placement of a negative heading would be clockwise from 0°.*
 
 
+### Rounding
+Due to the fact that the engine uses integers to represent the world rounding had to be applied to certain calculations that gave decimal results. 
+
+The game engine uses C# which uses round-to-even or banker's rounding, which means any value that is at exactly at the midpoint ( x.5 ), will be rounded to the nearest even number.
+Take the following examples:
+
+- 23.5 will become 24
+- 24.5 will become 24
+- 24.6 will become 25
+- 25.5 will become 26
+
+A summary of those rounding decisions can be seen below:
+
+####Distance between objects:
+Uses standard Math.Round rounding.
+
+####Position calculation:
+Uses standard Math.Round rounding
+
+####Speed calculations:
+Uses Math.Ceiling rounding as there is a minimum that it shouldn't go below.
+
+####Size calculations:
+Uses Math.Ceiling rounding as there is a minimum that it shouldn't go below.
+
+Note when doing rounding calculations in your own bot check the rules of the specific language as some use different rounding strategies to C#. 
+
+No language will have a advantage as only integer values are used in commands and the engine calculates all bot commands in the same way.
+This section is for reference to check that your bot calculations and decision points align with how the engine works.
+
+
+
 **NB:
 The values provided within this readme are subject to change during balance phases.
-Entelect will endevour to maintain this readme file. However the most accurate values can be found in appsettings.json within the game-engine folder.**
+Entelect will endeavour to maintain this readme file. However the most accurate values can be found in appsettings.json within the game-engine folder.**
 
 

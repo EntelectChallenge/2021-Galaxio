@@ -38,8 +38,6 @@ namespace Engine.Services
         private int wormholeSeed;
         private int gasCloudSeed;
         private int asteroidFieldSeed;
-        private List<ActiveEffect> effectsToAddForRound;
-        private List<ActiveEffect> effectsToRemoveForTick;
 
         public WorldStateService(
             IConfigurationService engineConfigOptions,

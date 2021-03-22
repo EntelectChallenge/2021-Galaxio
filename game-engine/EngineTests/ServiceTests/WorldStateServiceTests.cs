@@ -100,7 +100,7 @@ namespace EngineTests.ServiceTests
                 WorldStateService.ApplyAfterTickStateChanges();
             }
 
-            Assert.AreEqual(countBefore - 1, state.WormholePairs.Count);
+            Assert.Less(state.WormholePairs.Count, countBefore);
         }
 
         [Test]

@@ -37,6 +37,7 @@ namespace GameRunner
             services.AddSingleton<IConfigurationService, ConfigurationService>();
             services.AddSingleton<IRunnerStateService, RunnerStateService>();
             services.AddSingleton<IEnvironmentService, EnvironmentService>();
+            services.AddSingleton<ITimerService, TimerService>();
 
             services.AddTransient<ICloudCallbackFactory, CloudCallbackFactory>();
 
