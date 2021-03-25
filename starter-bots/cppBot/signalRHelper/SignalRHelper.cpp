@@ -65,7 +65,12 @@ std::string SignalRHelper::getRunnerEndpoint() {
     if (ipAddr == nullptr) { // invalid to assign nullptr to std::string
         return "http://127.0.0.1:5000/runnerhub";
     } else {
-        std::string endpoint = "http://";
+        std::string endpoint;
+        
+        if (ipAddr.rfind("http://", 0) != 0) {
+            endpoint.append("http://");
+        }
+
         endpoint.append(ipAddr);
         endpoint.append(":5000/runnerhub");
         return endpoint;
