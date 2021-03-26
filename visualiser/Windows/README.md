@@ -15,11 +15,12 @@ If the gameComplete log cannot be auto-detected, the visualiser will not run.
 
 ### Windows
 
-1. Run the Galaxio.exe file
+1. Unzip `Galaxio.zip`
+2. Run the Galaxio.exe file
     - If you get a pop up from windows defender, choose `More Info` and then `Run Anyway`
-2. Use the "LOAD" button to select your `game state` log file
-3. Click "BEGIN"
-4. If the log is big, give it a moment to load. 
-5. Once you can see the start of the game in front of you, use the space bar to start the match.
+3. Use the "LOAD" button to select your `game state` log file
+4. Click "BEGIN"
+5. If the log is big, give it a moment to load. 
+6. Once you can see the start of the game in front of you, use the space bar to start the match.
 
 Make sure you review the controls under the "CONTROL" button.
