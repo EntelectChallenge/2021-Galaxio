@@ -260,8 +260,6 @@ namespace Engine.Services
             Logger.LogDebug("WorldGen", $"Player Seeds: [{string.Join(" ", playerSeeds)}]");
             List<GameObject> placedFood = worldObjectGenerationService.GeneratePlayerStartingFood(playerSeeds, state.GameObjects);
             Logger.LogDebug("WorldGen", $"Placed Starting Food, GameObject Count: {state.GameObjects.Count}");
-            worldObjectGenerationService.GenerateWorldFood(placedFood, playerSeeds, state.GameObjects);
-            Logger.LogDebug("WorldGen", $"Placed Food, GameObject Count: {state.GameObjects.Count}");
             wormholeSeed = engineConfig.Wormholes.Seed ?? new Random().Next(engineConfig.Wormholes.MinSeed, engineConfig.Wormholes.MaxSeed);
             Logger.LogDebug("WorldGen", $"Wormhole Seed: {wormholeSeed}");
             state.WormholePairs = worldObjectGenerationService.GenerateWormholes(state.GameObjects, wormholeSeed);
@@ -290,6 +288,9 @@ namespace Engine.Services
             asteroidFieldSeed = asteroidFields.Item2;
             Logger.LogDebug("WorldGen", $"Final Asteroid Field Seed: {asteroidFieldSeed}");
             Logger.LogDebug("WorldGen", $"Placed Asteroid Fields: {state.GameObjects.Count}");
+
+            worldObjectGenerationService.GenerateWorldFood(placedFood, playerSeeds, state.GameObjects);
+            Logger.LogDebug("WorldGen", $"Placed Food, GameObject Count: {state.GameObjects.Count}");
         }
 
         public void UpdateBotSpeed(GameObject bot)

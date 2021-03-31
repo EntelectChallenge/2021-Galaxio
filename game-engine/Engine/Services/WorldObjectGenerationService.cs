@@ -56,7 +56,7 @@ namespace Engine.Services
                     var food = CreateFoodObjectAtPosition(Guid.NewGuid(), foodPosition);
                     var isValid = CheckPlacementValidity(
                         food,
-                        placedFood,
+                        gameObjects,
                         lastPlacedFood.Position,
                         engineConfig.WorldFood.FoodSize * 2 + engineConfig.WorldFood.MinSeparation,
                         engineConfig.WorldFood.MaxSeparation);
@@ -362,7 +362,8 @@ namespace Engine.Services
             Tuple<List<Tuple<int, int, int, decimal>>, int> obstaclePositions = GetWorldObstaclePositions(
                 config,
                 obstacleSeed,
-                config.Modular);
+                config.Modular,
+                config.GenerateCount);
             var result = new Tuple<List<GameObject>, int>(new List<GameObject>(), obstaclePositions.Item2);
             var maxCount = Math.Min(obstaclePositions.Item1.Count, config.MaxCount);
             var startingPositions = GetPlayerStartingPositions().Select(p => new GameObject { Position = p }).ToList();
@@ -379,6 +380,7 @@ namespace Engine.Services
                     config,
                     value.Item1,
                     config.SubModular,
+                    config.GenerateSubCount,
                     value.Item1,
                     value.Item2);
                 var maxSubCount = Math.Min(obstacleNodePositions.Item1.Count, config.MaxSubCount);
@@ -392,6 +394,7 @@ namespace Engine.Services
                         X = subValue.Item1,
                         Y = subValue.Item2
                     };
+
                     var obstacleNode = CreateObjectAtPosition(Guid.NewGuid(), position, gameObjectType, subValue.Item3);
 
                     var noObjectsInRange = CheckNoObjectsInRange(
@@ -414,6 +417,7 @@ namespace Engine.Services
             WorldObstacleConfig config,
             decimal seed,
             int modular,
+            int generateCount,
             int? offsetx = null,
             int? offsety = null)
         {
@@ -423,9 +427,9 @@ namespace Engine.Services
             var ys = seed;
             var constX = config.ConstX;
             var constY = config.ConstY;
-            var constXY = config.ConstXY;
+            var quadPosIndicator = 1;
 
-            for (var i = 0; i < config.GenerateSubCount; i++)
+            for (var i = 0; i < generateCount; i++)
             {
                 /* Get the size of each node as the first character of the previous nodes x and y coordinates combined. */
                 var s = Convert.ToInt32(
@@ -433,11 +437,13 @@ namespace Engine.Services
 
                 /* Calculate random seeded value for x */
                 xs = xs * multiplier % modular + constX;
-                var x = Convert.ToInt32((Math.Round(xs, 0) % constXY > 0 ? -1 : 1) * xs);
 
                 /* Calculate random seeded value for y */
                 ys = ys * multiplier % modular + constY;
-                var y = Convert.ToInt32((Math.Round(ys, 0) % constXY > 0 ? -1 : 1) * ys);
+
+                SetPositionWithMultiplier(xs, ys, quadPosIndicator, out int x, out int y);
+
+                SetQuadPosIndicator(ref quadPosIndicator);
 
                 /* Calculate distance to center point of the circle (0,0). */
                 var d = vectorCalculatorService.GetDistanceBetween(
@@ -493,6 +499,17 @@ namespace Engine.Services
             }
 
             return startingPositions;
+        }
+
+        private void SetQuadPosIndicator(ref int quadPosIndicator)
+        {
+            quadPosIndicator = quadPosIndicator == 4 ? 1 : quadPosIndicator + 1;
+        }
+
+        private void SetPositionWithMultiplier(decimal xValue, decimal yValue, int quadPosIndicator, out int xResult, out int yResult)
+        {
+            xResult = Convert.ToInt32((quadPosIndicator < 3 ? -1 : 1) * xValue);
+            yResult = Convert.ToInt32((quadPosIndicator > 3 || quadPosIndicator < 2 ? -1 : 1) * yValue);
         }
     }
 }
