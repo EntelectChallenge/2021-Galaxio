@@ -295,7 +295,7 @@ namespace Logger.Services
             object objToSerialise,
             bool withTime = true)
         {
-            var filename = withTime ? $"{logFileName}.json" : logFileName;
+            var filename = $"{logFileName}.json";
             var path = Path.Combine(dir, filename);
 
             LogWriter.LogInfo("Logger", $"Begin writing file {path.ToString()}");
