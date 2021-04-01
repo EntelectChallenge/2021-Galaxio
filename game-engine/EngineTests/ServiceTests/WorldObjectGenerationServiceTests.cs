@@ -447,5 +447,57 @@ namespace EngineTests.ServiceTests
 
             Assert.AreEqual(262, heading);
         }
+
+        [Test]
+        public void GivenAsteroidFields_WhenCheckPlacementValidityOfFood_ThenReturnTrue()
+        {
+            var asteroidFields = FakeGameObjectProvider.GetAsteroidFields();
+            var foodPosition = new Position(-573, 682);
+            var otherPosition = new Position(-573, 700);
+            var food = FakeGameObjectProvider.GetFoodAt(foodPosition);
+
+            var isValid = worldObjectGenerationService.CheckPlacementValidity(food, asteroidFields, otherPosition, 3, 30);
+
+            Assert.IsTrue(isValid);
+        }
+
+        [Test]
+        public void GivenAsteroidFields_WhenCheckPlacementValidityOfFood_ThenReturnFalse()
+        {
+            var asteroidFields = FakeGameObjectProvider.GetAsteroidFields();
+            var foodPosition = new Position(-573, 681);
+            var otherPosition = new Position(-573, 700);
+            var food = FakeGameObjectProvider.GetFoodAt(foodPosition);
+
+            var isValid = worldObjectGenerationService.CheckPlacementValidity(food, asteroidFields, otherPosition, 3, 30);
+
+            Assert.IsFalse(isValid);
+        }
+
+        [Test]
+        public void GivenGasClouds_WhenCheckPlacementValidityOfFood_ThenReturnTrue()
+        {
+            var gasClouds = FakeGameObjectProvider.GetGasClouds();
+            var foodPosition = new Position(-283, 291);
+            var otherPosition = new Position(-283, 300);
+            var food = FakeGameObjectProvider.GetFoodAt(foodPosition);
+
+            var isValid = worldObjectGenerationService.CheckPlacementValidity(food, gasClouds, otherPosition, 3, 30);
+
+            Assert.IsTrue(isValid);
+        }
+
+        [Test]
+        public void GivenGasClouds_WhenCheckPlacementValidityOfFood_ThenReturnFalse()
+        {
+            var gasClouds = FakeGameObjectProvider.GetGasClouds();
+            var foodPosition = new Position(-283, 290);
+            var otherPosition = new Position(-283, 300);
+            var food = FakeGameObjectProvider.GetFoodAt(foodPosition);
+
+            var isValid = worldObjectGenerationService.CheckPlacementValidity(food, gasClouds, otherPosition, 3, 30);
+
+            Assert.IsFalse(isValid);
+        }
     }
 }

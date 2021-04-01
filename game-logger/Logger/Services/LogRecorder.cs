@@ -240,13 +240,11 @@ namespace Logger.Services
             var gameStateFilePath = WriteFileWithSerialisation(
                 stateFileName,
                 finalLogDir,
-                gameStateDtoLog,
-                false);
+                gameStateDtoLog);
             var gameCompleteFilePath = WriteFileWithSerialisation(
                 $"{gameCompleteFileName ?? $"{loggerConfig.GameStateLogFileName}_{logTime}_GameComplete"}",
                 finalLogDir,
-                gameCompletePayload,
-                string.IsNullOrWhiteSpace(gameCompleteFileName));
+                gameCompletePayload);
 
             LogWriter.LogInfo("Logger", "Logs Saved Successfully");
             LogWriter.LogInfo("Logger", $"Log Directory: {logDirectory}, Current Directory: {Directory.GetCurrentDirectory()}");
@@ -292,10 +290,9 @@ namespace Logger.Services
         private string WriteFileWithSerialisation(
             string logFileName,
             string dir,
-            object objToSerialise,
-            bool withTime = true)
+            object objToSerialise)
         {
-            var filename = withTime ? $"{logFileName}.json" : logFileName;
+            var filename = logFileName.EndsWith(".json") ? logFileName : $"{logFileName}.json";
             var path = Path.Combine(dir, filename);
 
             LogWriter.LogInfo("Logger", $"Begin writing file {path.ToString()}");
