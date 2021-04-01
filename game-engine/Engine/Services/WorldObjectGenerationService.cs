@@ -58,7 +58,7 @@ namespace Engine.Services
                         food,
                         gameObjects,
                         lastPlacedFood.Position,
-                        engineConfig.WorldFood.FoodSize * 2 + engineConfig.WorldFood.MinSeparation,
+                        engineConfig.WorldFood.FoodSize + engineConfig.WorldFood.MinSeparation,
                         engineConfig.WorldFood.MaxSeparation);
                     if (!isValid)
                     {
@@ -141,7 +141,7 @@ namespace Engine.Services
                     wormhole,
                     gameObjects.Where(go => go.GameObjectType == GameObjectType.Wormhole).ToList(),
                     worldCenter,
-                    engineConfig.Wormholes.MaxSize * 2 + engineConfig.Wormholes.MinSeparation,
+                    engineConfig.Wormholes.MaxSize + engineConfig.Wormholes.MinSeparation,
                     engineConfig.MapRadius * 2,
                     isFirstWormhole);
             }
@@ -183,7 +183,7 @@ namespace Engine.Services
                         food,
                         placedFood,
                         startingPositions[i],
-                        engineConfig.WorldFood.FoodSize * 2 + engineConfig.WorldFood.MinSeparation,
+                        engineConfig.WorldFood.FoodSize + engineConfig.WorldFood.MinSeparation,
                         engineConfig.WorldFood.MaxStartingSeparation);
 
                     //Add another food to the list to create as this one is not valid
@@ -284,11 +284,12 @@ namespace Engine.Services
 
             foreach (var gameObject in objects)
             {
+                var objectSize = gameObject.GameObjectType == GameObjectType.Wormhole ? engineConfig.Wormholes.MaxSize : gameObject.Size;
                 var objectPosition = gameObject.Position;
-                if (minPosition.X <= objectPosition.X &&
-                    objectPosition.X <= maxPosition.X &&
-                    minPosition.Y <= objectPosition.Y &&
-                    objectPosition.Y <= maxPosition.Y)
+                if (minPosition.X - objectSize <= objectPosition.X &&
+                    objectPosition.X <= maxPosition.X + objectSize &&
+                    minPosition.Y - objectSize <= objectPosition.Y &&
+                    objectPosition.Y <= maxPosition.Y + objectSize)
                 {
                     listOfObjectsInSquare.Add(gameObject);
                 }
@@ -298,8 +299,9 @@ namespace Engine.Services
             {
                 foreach (var gameObject in listOfObjectsInSquare)
                 {
+                    var objectSize = gameObject.GameObjectType == GameObjectType.Wormhole ? engineConfig.Wormholes.MaxSize : gameObject.Size;
                     var distanceBetween = vectorCalculatorService.GetDistanceBetween(referenceObject.Position, gameObject.Position);
-                    if (distanceBetween < minDistance)
+                    if (distanceBetween < minDistance + objectSize)
                     {
                         return false;
                     }
@@ -400,7 +402,7 @@ namespace Engine.Services
                     var noObjectsInRange = CheckNoObjectsInRange(
                         obstacleNode,
                         startingPositions,
-                        config.MinDistanceFromPlayers);
+                        config.MinDistanceFromPlayers + obstacleNode.Size);
 
                     if (noObjectsInRange)
                     {
