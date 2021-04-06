@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Domain.Enums;
 using Domain.Models;
 using Domain.Services;
@@ -99,7 +100,7 @@ namespace Engine.Handlers.Collisions
                 bot
             };
 
-            foreach (var botObject in bots)
+            foreach (var botObject in bots.Where(botObject => botObject.CurrentAction != null))
             {
                 botObject.CurrentHeading = vectorCalculatorService.ReverseHeading(botObject.CurrentHeading);
                 botObject.CurrentAction.Heading = botObject.CurrentHeading;

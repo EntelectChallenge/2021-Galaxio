@@ -166,5 +166,18 @@ namespace EngineTests.ServiceTests
             Assert.True(WorldStateService.GameObjectIsInWorldState(bot2.Id));
             Assert.AreEqual(EngineConfigFake.Value.ScoreRates[GameObjectType.Player], bot2.Score);
         }
+        
+        [Test]
+        public void GivenMovingBotCollidesWithDeadBot_WhenTick_ThenDeadBotIsRemovedFromWorld()
+        {
+            var deadBot = FakeGameObjectProvider.GetBotAtDefault();
+            var aliveBot = FakeGameObjectProvider.GetBigBotAt(new Position(19, 0));
+
+            var handler = collisionHandlerResolver.ResolveHandler(deadBot, aliveBot);
+            var result = handler.ResolveCollision(deadBot, aliveBot);
+
+            Assert.False(WorldStateService.GameObjectIsInWorldState(deadBot.Id));
+            Assert.True(WorldStateService.GameObjectIsInWorldState(aliveBot.Id));
+        }
     }
 }
