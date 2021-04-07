@@ -39,7 +39,7 @@ In a match your **1** ship will compete against a **variable** amount of other s
 
 ## The Map
 
-The Map is a cartesian plane stretching out in both positive and negative directions. The map will only deal with whole numbers. Your ship can only be in an integer x,y position on the map. The map center will be 0,0 and the edge will be provided as a radius.
+The Map is a cartesian plane stretching out in both positive and negative directions. The map will only deal with whole numbers. Your ship can only be in an integer x,y position on the map. The map center will be 0,0 and the edge will be provided as a radius, the maximum rounds of a game will be equal to the size of the radius.
 
 The map contains the following objects:
 
