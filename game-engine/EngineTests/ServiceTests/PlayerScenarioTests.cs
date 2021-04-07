@@ -219,13 +219,13 @@ namespace EngineTests.ServiceTests
                 firstAction
             };
 
-            for (var j = 0; j < 7; j++)
+            for (var j = 0; j < 6; j++)
             {
                 Assert.DoesNotThrow(() => actionService.ApplyActionToBot(bot));
                 Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
             }
             
-            Assert.AreEqual(3, bot.Size);
+            Assert.AreEqual(4, bot.Size);
             Assert.False(WorldStateService.GameObjectIsInWorldState(bot.Id));
         }
     }

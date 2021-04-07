@@ -159,6 +159,15 @@ namespace Engine.Services
             }
 
             HandeEffects();
+            
+            foreach (var statePlayerObject in state.PlayerGameObjects)
+            {
+                if (statePlayerObject.Size < 5)
+                {
+                    Logger.LogInfo("BotDeath", "Bot shrunk too small");
+                    markedForRemoval.Add(statePlayerObject.Id);
+                }
+            }
 
             foreach (var gameObject in markedForRemoval.Select(guid => state.GameObjects.Find(go => go.Id == guid))
                 .Where(gameObject => gameObject != default))

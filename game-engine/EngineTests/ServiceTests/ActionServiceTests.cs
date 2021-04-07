@@ -169,7 +169,7 @@ namespace EngineTests.ServiceTests
 
             Assert.True(activeEffect != default);
             Assert.AreEqual(8, bot.Size);
-            Assert.AreEqual(40, bot.Speed);
+            Assert.AreEqual(46, bot.Speed);
         }
 
         [Test]
@@ -213,7 +213,7 @@ namespace EngineTests.ServiceTests
 
             Assert.True(activeEffect == default);
             Assert.AreEqual(5, bot.Size);
-            Assert.AreEqual(20, bot.Speed);
+            Assert.AreEqual(40, bot.Speed);
         }
     }
 }
