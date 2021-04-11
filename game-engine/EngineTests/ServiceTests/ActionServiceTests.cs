@@ -80,15 +80,20 @@ namespace EngineTests.ServiceTests
 
             Assert.DoesNotThrow(() => actionService.ApplyActionToBot(bot));
             var activeEffect = WorldStateService.GetActiveEffectByType(bot.Id, Effects.Afterburner);
+            var botAfter = WorldStateService.GetState().PlayerGameObjects.Find(g => g.Id == bot.Id);
 
             Assert.True(activeEffect != default);
             Assert.True(activeEffect.Bot.Size == 10);
             Assert.True(activeEffect.Bot.Speed == 40);
+            Assert.True(botAfter != default);
+            Assert.True(botAfter.Effects == Effects.Afterburner);
 
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
 
             Assert.True(activeEffect.Bot.Size == 9);
             Assert.True(activeEffect.Bot.Speed == 40);
+            Assert.True(botAfter != default);
+            Assert.True(botAfter.Effects == Effects.Afterburner);
         }
 
         [Test]
@@ -104,7 +109,7 @@ namespace EngineTests.ServiceTests
 
             Assert.DoesNotThrow(() => actionService.ApplyActionToBot(bot));
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
-
+            
             var secondAction = FakeGameObjectProvider.GetStopAfterburnerPlayerAction(bot.Id);
             bot.PendingActions = new List<PlayerAction>
             {
@@ -113,10 +118,13 @@ namespace EngineTests.ServiceTests
 
             Assert.DoesNotThrow(() => actionService.ApplyActionToBot(bot));
             var activeEffect = WorldStateService.GetActiveEffectByType(bot.Id, Effects.Afterburner);
+            var botAfter = WorldStateService.GetState().PlayerGameObjects.Find(g => g.Id == bot.Id);
 
             Assert.True(activeEffect == default);
             Assert.AreEqual(9, bot.Size);
             Assert.AreEqual(23, bot.Speed);
+            Assert.True(botAfter != default);
+            Assert.True(botAfter.Effects != Effects.Afterburner);
         }
 
         [Test]

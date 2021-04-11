@@ -48,8 +48,12 @@ namespace EngineTests.HandlerTests
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
 
             var activeEffect = WorldStateService.GetActiveEffectByType(bot.Id, Effects.AsteroidField);
+            var botAfter = WorldStateService.GetState().PlayerGameObjects.Find(g => g.Id == bot.Id);
 
             Assert.True(activeEffect != default);
+            Assert.True(activeEffect.Effect == Effects.AsteroidField);
+            Assert.True(botAfter != default);
+            Assert.True(botAfter.Effects == Effects.AsteroidField);
             Assert.AreEqual(19, bot.Speed);
         }
         
