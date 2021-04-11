@@ -382,7 +382,7 @@ namespace Engine.Services
 
             if (bot != default)
             {
-                bot.Effects &= activeEffect.Effect;
+                bot.Effects &= ~activeEffect.Effect;
             }
         }
 
