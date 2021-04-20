@@ -37,6 +37,8 @@ def set_hub_connection(connected):
 def run_bot():
     environmentIp = os.getenv('RUNNER_IPV4', "http://localhost")
 
+    environmentIp = environmentIp if environmentIp.startswith("http://") else "http://" + environmentIp
+
     url = environmentIp + ":" + "5000" + "/runnerhub"
 
     print(url)

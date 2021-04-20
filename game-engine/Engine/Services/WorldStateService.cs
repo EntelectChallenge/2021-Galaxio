@@ -117,13 +117,16 @@ namespace Engine.Services
             state.World.CurrentTick++;
             state.World.Radius--;
 
-            foreach (var statePlayerObject in state.PlayerGameObjects.Where(
-                statePlayerObject => !vectorCalculatorService.IsInWorldBoundsWithOffset(
+            foreach (var statePlayerObject in state.PlayerGameObjects)
+            {
+                if (vectorCalculatorService.IsInWorldBoundsWithOffset(
                     statePlayerObject.Position,
                     statePlayerObject.Size,
-                    state.World.Radius)))
-            {
-                statePlayerObject.Size -= 1;
+                    state.World.Radius) != true)
+                {
+                    statePlayerObject.Size -= 1;
+                }
+                
                 UpdateBotSpeed(statePlayerObject);
 
                 if (statePlayerObject.Size < 5)
@@ -156,6 +159,15 @@ namespace Engine.Services
             }
 
             HandeEffects();
+            
+            foreach (var statePlayerObject in state.PlayerGameObjects)
+            {
+                if (statePlayerObject.Size < 5)
+                {
+                    Logger.LogInfo("BotDeath", "Bot shrunk too small");
+                    markedForRemoval.Add(statePlayerObject.Id);
+                }
+            }
 
             foreach (var gameObject in markedForRemoval.Select(guid => state.GameObjects.Find(go => go.Id == guid))
                 .Where(gameObject => gameObject != default))
@@ -382,7 +394,7 @@ namespace Engine.Services
 
             if (bot != default)
             {
-                bot.Effects &= activeEffect.Effect;
+                bot.Effects &= ~activeEffect.Effect;
             }
         }
 

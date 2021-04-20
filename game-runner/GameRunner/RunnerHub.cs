@@ -48,23 +48,6 @@ namespace GameRunner
         }
 
         /// <summary>
-        ///     Allows a bot to register for a game with their given token
-        /// </summary>
-        /// <param name="token">Environment Token</param>
-        /// <param name="nickName">NickName for bot with a max length of 12 characters</param>
-        /// <returns></returns>
-        public async Task Register(Guid token, string nickName)
-        {
-            Logger.LogInfo("Hub.Register", $"Registering Bot with nickname {nickName}");
-            runnerStateService.RegisterClient(Context.ConnectionId, nickName, Clients.Client(Context.ConnectionId));
-            runnerStateService.AddRegistrationToken(Context.ConnectionId, token);
-            Guid? botId = runnerStateService.GetBotGuidFromConnectionId(Context.ConnectionId);
-            Logger.LogDebug("Hub.Register", $"Issuing registration back to {nickName} with id {botId.ToString()}");
-            await Clients.Client(Context.ConnectionId).SendAsync("Registered", botId);
-            await CheckForGameStartConditions();
-        }
-
-        /// <summary>
         ///     Deregister a bot on disconnect.
         /// </summary>
         /// <param name="exception"></param>
@@ -72,6 +55,7 @@ namespace GameRunner
         public override Task OnDisconnectedAsync(Exception exception)
         {
             runnerStateService.DeregisterBot(Context.ConnectionId);
+            Groups.RemoveFromGroupAsync(Context.ConnectionId, "players");
             var result = base.OnDisconnectedAsync(exception);
             return result;
         }
@@ -91,6 +75,8 @@ namespace GameRunner
             {
                 await cloudIntegrationService.Announce(CloudCallbackType.Ready);
             }
+
+            await Groups.AddToGroupAsync(Context.ConnectionId, GameGroups.Components);
         }
 
         /// <summary>
@@ -146,7 +132,8 @@ namespace GameRunner
                 "GameStatePublished",
                 $"Tick: {gameStateDto.World.CurrentTick}, Player Count: {gameStateDto.PlayerObjects.Count}, Object Count: {gameStateDto.GameObjects.Count}");
 
-            await Clients.All.SendAsync("ReceiveGameState", gameStateDto);
+            await Clients.Group(GameGroups.Players).SendAsync("ReceiveGameState", gameStateDto);
+            await Clients.Group(GameGroups.Components).SendAsync("ReceiveGameState", gameStateDto);
             await Clients.Caller.SendAsync("TickAck", gameStateDto.World.CurrentTick);
         }
 
@@ -197,6 +184,7 @@ namespace GameRunner
             {
                 await cloudIntegrationService.Announce(CloudCallbackType.Ready);
             }
+            await Groups.AddToGroupAsync(Context.ConnectionId, GameGroups.Components);
         }
 
         public async Task GameLoggingComplete()
@@ -237,6 +225,31 @@ namespace GameRunner
         #endregion
 
         #region Bot endpoints
+        
+        /// <summary>
+        ///     Allows a bot to register for a game with their given token
+        /// </summary>
+        /// <param name="token">Environment Token</param>
+        /// <param name="nickName">NickName for bot with a max length of 12 characters</param>
+        /// <returns></returns>
+        public async Task Register(Guid token, string nickName)
+        {
+            Logger.LogInfo("Hub.Register", $"Registering Bot with nickname {nickName}");
+            var botId = runnerStateService.RegisterClient(Context.ConnectionId, nickName, Clients.Client(Context.ConnectionId));
+            if (botId == default)
+            {
+                Logger.LogInfo("Hub.Register", "Already reached total bot count for this match.");
+                await Clients.Client(Context.ConnectionId).SendAsync("Disconnect", botId);
+                return;
+            }
+
+            runnerStateService.AddRegistrationToken(Context.ConnectionId, token);
+            Logger.LogDebug("Hub.Register", $"Issuing registration back to {nickName} with id {botId.ToString()}");
+
+            await Groups.AddToGroupAsync(Context.ConnectionId, GameGroups.Players);
+            await Clients.Client(Context.ConnectionId).SendAsync("Registered", botId);
+            await CheckForGameStartConditions();
+        }
 
         /// <summary>
         ///     Allow bots to send actions to Runner.
@@ -252,7 +265,8 @@ namespace GameRunner
 
             Guid? playerId = runnerStateService.GetBotGuidFromConnectionId(Context.ConnectionId);
 
-            if (!playerId.HasValue || runnerStateService.GetBotActionReceived(playerId.Value))
+            if (!playerId.HasValue ||
+                runnerStateService.GetBotActionReceived(playerId.Value))
             {
                 return;
             }
@@ -269,9 +283,7 @@ namespace GameRunner
 
         private async Task CheckForGameStartConditions()
         {
-            Logger.LogInfo(
-                "RunnerHub",
-                $"Connected Clients: {runnerStateService.TotalConnectedClients}, Target: {runnerConfig.BotCount}");
+            Logger.LogInfo("RunnerHub", $"Connected Clients: {runnerStateService.TotalConnectedClients}, Target: {runnerConfig.BotCount}");
 
             if (runnerStateService.TotalConnectedClients != runnerConfig.BotCount)
             {
@@ -283,5 +295,11 @@ namespace GameRunner
         }
 
         #endregion
+    }
+
+    public static class GameGroups
+    {
+        public const string Players = "Players";
+        public const string Components = "Components";
     }
 }

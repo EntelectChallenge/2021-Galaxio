@@ -48,8 +48,12 @@ namespace EngineTests.HandlerTests
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
 
             var activeEffect = WorldStateService.GetActiveEffectByType(bot.Id, Effects.GasCloud);
+            var botAfter = WorldStateService.GetState().PlayerGameObjects.Find(g => g.Id == bot.Id);
 
             Assert.True(activeEffect != default);
+            Assert.True(activeEffect.Effect == Effects.GasCloud);
+            Assert.True(botAfter != default);
+            Assert.True(botAfter.Effects == Effects.GasCloud);
             Assert.AreEqual(8, bot.Size);
         }
     }

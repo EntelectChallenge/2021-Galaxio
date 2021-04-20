@@ -64,6 +64,11 @@ namespace GameRunner.Services
                 return default;
             }
 
+            if (TotalConnectedClients >= runnerConfig.BotCount)
+            {
+                return default;
+            }
+
             var botGuid = Guid.NewGuid();
             Logger.LogDebug("RunnerStateService", "Registering Bot");
             gameEngine.Client.SendAsync("BotRegistered", botGuid);

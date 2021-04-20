@@ -22,8 +22,8 @@ This repo provides a convenient way to load and run all the engine components to
 4. Inside this folder, run `build.sh`
 5. Once complete, open a terminal or command prompt, and run `docker-compose -p "ec" up --build`
 6. Once the run, it will take a moment to shut down, and then you can use the following commands to download the match logs
-    1. Match state: `docker cp ec_logger_1:/app/matchState.log ./matchState.json`
-    2. Game Complete: `docker cp ec_logger_1:/app/gameComplete.log ./gameComplete.json`
+    1. Match state: `docker cp ec_logger_1:/app/matchState.log.json ./matchState.json`
+    2. Game Complete: `docker cp ec_logger_1:/app/gameComplete.log.json ./matchState_gameComplete.json`
 
 ## Running a bot against This
 

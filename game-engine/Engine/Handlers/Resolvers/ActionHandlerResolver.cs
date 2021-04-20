@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Domain.Models;
+using Engine.Handlers.Actions;
 using Engine.Handlers.Interfaces;
 
 namespace Engine.Handlers.Resolvers
@@ -16,7 +17,13 @@ namespace Engine.Handlers.Resolvers
 
         public IActionHandler ResolveHandler(PlayerAction botCurrentAction)
         {
-            return handlers.First(handler => handler.IsApplicable(botCurrentAction));
+            var handler = handlers.FirstOrDefault(h => h.IsApplicable(botCurrentAction));
+            if (handler == null)
+            {
+                return new NoOpActionHandler();
+            }
+
+            return handler;
         }
     }
 }

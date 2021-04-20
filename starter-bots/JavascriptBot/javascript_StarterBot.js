@@ -1,6 +1,7 @@
 const signalR = require("@microsoft/signalr");
 const token = process.env["REGISTRATION_TOKEN"] ?? createGuid();
 let url = process.env["RUNNER_IPV4"] ?? "http://localhost";
+url = url.startsWith("http://") ?  url : "http://" + url
 url += ":5000/runnerhub";
 let _bot = null;
 let _playerAction = null;

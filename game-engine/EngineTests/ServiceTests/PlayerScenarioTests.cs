@@ -207,5 +207,26 @@ namespace EngineTests.ServiceTests
             Assert.AreEqual(expectedDistance, resultingDistanceTravelled);
             Assert.Zero(varianceBetweenExpectedAndActualEndpoint);
         }
+        
+        [Test]
+        public void GivenDeadBot_WithAfterburnerStarted_ThenRemoveFromWorldWhenSizeLessThan5()
+        {
+            SetupFakeWorld();
+            var bot = FakeGameObjectProvider.GetBotAtDefault();
+            var firstAction = FakeGameObjectProvider.GetStartAfterburnerPlayerAction(bot.Id);
+            bot.PendingActions = new List<PlayerAction>
+            {
+                firstAction
+            };
+
+            for (var j = 0; j < 6; j++)
+            {
+                Assert.DoesNotThrow(() => actionService.ApplyActionToBot(bot));
+                Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
+            }
+            
+            Assert.AreEqual(4, bot.Size);
+            Assert.False(WorldStateService.GameObjectIsInWorldState(bot.Id));
+        }
     }
 }
