@@ -4,16 +4,21 @@ namespace Domain.Models
 {
     public class Position: IEquatable<Position>
     {
+        public Position()
+        {
+            
+        }
+
         public Position(int x, int y)
         {
             X = x;
             Y = y;
         }
 
-        public Position()
+        public Position(Position oldPosition)
         {
-            X = 0;
-            Y = 0;
+            X = oldPosition.X;
+            Y = oldPosition.Y;
         }
 
         public int X { get; set; }

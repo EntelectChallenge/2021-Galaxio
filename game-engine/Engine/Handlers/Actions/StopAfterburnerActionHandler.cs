@@ -14,7 +14,7 @@ namespace Engine.Handlers.Actions
             this.worldStateService = worldStateService;
         }
 
-        public bool IsApplicable(PlayerAction botCurrentAction) => botCurrentAction?.Action == PlayerActions.StopAfterburner;
+        public bool IsApplicable(PlayerAction action) => action?.Action == PlayerActions.StopAfterburner;
 
         public void ProcessAction(BotObject bot)
         {

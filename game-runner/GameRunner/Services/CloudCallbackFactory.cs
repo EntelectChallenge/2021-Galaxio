@@ -92,7 +92,8 @@ namespace GameRunner.Services
                         Seed = playerResult.Seed,
                         FinalScore = playerResult.Score,
                         GamePlayerId = playerResult.Id,
-                        PlayerParticipantId = runnerStateService.GetRegistrationToken(playerResult.Id)
+                        PlayerParticipantId = runnerStateService.GetRegistrationToken(playerResult.Id),
+                        MatchPoints = playerResult.MatchPoints
                     })
                 .ToList();
     }

@@ -20,3 +20,5 @@ EngineTests/obj/
 GameEngine/
 
 *publish/
+
+GameEngine.sln.DotSettings.user

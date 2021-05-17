@@ -12,7 +12,7 @@ namespace GameRunner.Interfaces
         int TotalConnectedClients { get; }
         int TotalConnectedBots { get; }
         int TotalConnections { get; }
-        string FailureReason { get; }
+        string FailureReason { get; set; }
         bool IsCoreReady { get; }
         GameCompletePayload GameCompletePayload { get; set; }
         Guid? GetBotGuidFromConnectionId(string contextConnectionId);

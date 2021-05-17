@@ -120,13 +120,14 @@ namespace Engine.Services
             foreach (var statePlayerObject in state.PlayerGameObjects)
             {
                 if (vectorCalculatorService.IsInWorldBoundsWithOffset(
-                    statePlayerObject.Position,
-                    statePlayerObject.Size,
-                    state.World.Radius) != true)
+                        statePlayerObject.Position,
+                        statePlayerObject.Size,
+                        state.World.Radius) !=
+                    true)
                 {
                     statePlayerObject.Size -= 1;
                 }
-                
+
                 UpdateBotSpeed(statePlayerObject);
 
                 if (statePlayerObject.Size < 5)
@@ -158,8 +159,8 @@ namespace Engine.Services
                 }
             }
 
-            HandeEffects();
-            
+            HandleEffects();
+
             foreach (var statePlayerObject in state.PlayerGameObjects)
             {
                 if (statePlayerObject.Size < 5)
@@ -193,6 +194,14 @@ namespace Engine.Services
             }
 
             markedForRemoval.Clear();
+
+            if (state.World.CurrentTick % engineConfig.Torpedo.ChargeRate == 0)
+            {
+                foreach (var bot in state.PlayerGameObjects.Where(bot => bot.TorpedoSalvoCount < engineConfig.Torpedo.MaxChargeCount))
+                {
+                    bot.TorpedoSalvoCount++;
+                }
+            }
         }
 
         public int GetPlayerCount()
@@ -210,9 +219,7 @@ namespace Engine.Services
 
         public bool GameObjectIsInWorldState(Guid id)
         {
-            var objects = new List<GameObject>(state.PlayerGameObjects);
-            objects.AddRange(state.GameObjects);
-            return !markedForRemoval.Contains(id) && objects.Exists(o => o.Id == id);
+            return !markedForRemoval.Contains(id) && (state.PlayerGameObjects.Exists(o => o.Id == id) || state.GameObjects.Exists(o => o.Id == id));
         }
 
         public GameStateDto GetPublishedState()
@@ -265,7 +272,7 @@ namespace Engine.Services
         public void GenerateStartingWorld()
         {
             Logger.LogDebug("WorldGen", "Using the following config values");
-            Logger.LogData(JsonConvert.SerializeObject(engineConfig,Formatting.Indented));
+            Logger.LogData(JsonConvert.SerializeObject(engineConfig, Formatting.Indented));
             List<int> playerSeeds = engineConfig.Seeds.PlayerSeeds ??
                 worldObjectGenerationService.GeneratePlayerSeeds(state.PlayerGameObjects);
             engineConfig.Seeds.PlayerSeeds = playerSeeds;
@@ -302,6 +309,7 @@ namespace Engine.Services
             Logger.LogDebug("WorldGen", $"Placed Asteroid Fields: {state.GameObjects.Count}");
 
             worldObjectGenerationService.GenerateWorldFood(placedFood, playerSeeds, state.GameObjects);
+            state.Superfood = state.GameObjects.FindAll(p => p.GameObjectType == GameObjectType.Superfood);
             Logger.LogDebug("WorldGen", $"Placed Food, GameObject Count: {state.GameObjects.Count}");
         }
 
@@ -320,7 +328,8 @@ namespace Engine.Services
                 bot.Speed *= engineConfig.Afterburners.SpeedFactor;
             }
 
-            if (GetActiveEffectByType(bot.Id, Effects.AsteroidField) != null && bot.Speed > 1)
+            if (GetActiveEffectByType(bot.Id, Effects.AsteroidField) != null &&
+                bot.Speed > 1)
             {
                 bot.Speed -= engineConfig.AsteroidFields.AffectPerTick;
             }
@@ -378,6 +387,14 @@ namespace Engine.Services
             return finalBotList;
         }
 
+        public List<MovableGameObject> GetMovableObjects()
+        {
+            var movableObjects = new List<MovableGameObject>();
+            movableObjects.AddRange(GetPlayerBots());
+            movableObjects.AddRange(state.GameObjects.OfType<MovableGameObject>());
+            return movableObjects;
+        }
+
         private void AddBotEffects(ActiveEffect activeEffect)
         {
             var bot = state.PlayerGameObjects.Find(p => p.Id == activeEffect.Bot.Id);
@@ -433,62 +450,63 @@ namespace Engine.Services
                 Score = 0
             };
 
-        private void HandeEffects()
+        private void HandleEffects()
         {
             var effectsToRemove = new List<ActiveEffect>();
-
-            /* Handle Afterburner costs. */
-            foreach (var activeEffect in activeEffects.Where(a => a.Effect == Effects.Afterburner))
+            
+            //REFACTOR INTO A SWITCH:
+            foreach (var activeEffect in activeEffects)
             {
-                /* Only reduce bot size if it has an active Afterburner. */
                 var bot = state.PlayerGameObjects.Find(b => b.Id == activeEffect.Bot.Id);
 
-                if (bot != default)
+                switch (activeEffect.Effect)
                 {
-                    bot.Size -= engineConfig.Afterburners.SizeConsumptionPerTick;
-                }
-            }
+                    /* Handle Afterburner costs. */
+                    case Effects.Afterburner:
+                        /* Only reduce bot size if it has an active Afterburner. */
+                        if (bot != default)
+                        {
+                            bot.Size -= engineConfig.Afterburners.SizeConsumptionPerTick;
+                        }
+                        break;
 
-            /* Handle Gas Cloud effects. */
-            foreach (var activeEffect in activeEffects.Where(a => a.Effect == Effects.GasCloud))
-            {
-                /* Only reduce bot size if it is in a Gas Cloud. */
-                var bot = state.PlayerGameObjects.Find(b => b.Id == activeEffect.Bot.Id);
-
-                if (bot == default)
-                {
-                    continue;
-                }
-
-                if (GetCollisions(bot).All(c => c.GameObjectType != GameObjectType.GasCloud))
-                {
-                    // This is state in place modification
-                    effectsToRemove.Add(activeEffect);
-                }
-                else
-                {
-                    bot.Size -= engineConfig.GasClouds.AffectPerTick;
-                }
-            }
-
-            /* Handle Asteroid Field effects. */
-            foreach (var activeEffect in activeEffects.Where(a => a.Effect == Effects.AsteroidField))
-            {
-                /* Only reduce bot speed if it is in an Asteroid Field. */
-                var bot = state.PlayerGameObjects.Find(b => b.Id == activeEffect.Bot.Id);
-
-                if (bot == default)
-                {
-                    continue;
-                }
-
-                if (GetCollisions(bot).All(c => c.GameObjectType != GameObjectType.AsteroidField))
-                {
-                    effectsToRemove.Add(activeEffect);
-                }
-                else
-                {
-                    UpdateBotSpeed(bot);
+                    /* Handle Gas Cloud effects. */
+                    case Effects.GasCloud:
+                        /* Only reduce bot size if it is in a Gas Cloud. */
+                        if (GetCollisions(bot).All(c => c.GameObjectType != GameObjectType.GasCloud))
+                        {
+                            // This is state in place modification
+                            effectsToRemove.Add(activeEffect);
+                        }
+                        else
+                        {
+                            bot.Size -= engineConfig.GasClouds.AffectPerTick;
+                        }
+                        break;
+                    
+                    /* Handle Asteroid Field effects. */
+                    case Effects.AsteroidField:
+                        /* Only reduce bot speed if it is in an Asteroid Field. */
+                        if (GetCollisions(bot).All(c => c.GameObjectType != GameObjectType.AsteroidField))
+                        {
+                            effectsToRemove.Add(activeEffect);
+                        }
+                        else
+                        {
+                            UpdateBotSpeed(bot);
+                        }
+                        break;
+                    
+                    /* Handle Superfood duration reduction and removal if needed */
+                    case Effects.Superfood:
+                        /* Only reduce superfood duration. */
+                        activeEffect.EffectDuration -= 1;
+                
+                        if (activeEffect.EffectDuration <= 0 )
+                        {
+                            effectsToRemove.Add(activeEffect);
+                        }
+                        break;
                 }
             }
 
