@@ -6,7 +6,7 @@ namespace Engine.Handlers.Actions
 {
     public class ForwardActionHandler : IActionHandler
     {
-        public bool IsApplicable(PlayerAction botCurrentAction) => botCurrentAction?.Action == PlayerActions.Forward;
+        public bool IsApplicable(PlayerAction action) => action?.Action == PlayerActions.Forward;
 
         public void ProcessAction(BotObject bot)
         {

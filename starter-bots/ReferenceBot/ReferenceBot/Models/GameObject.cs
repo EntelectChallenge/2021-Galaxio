@@ -12,19 +12,35 @@ namespace NETCoreBot.Models
         public ObjectTypes GameObjectType { get; set; }
         public int CurrentHeading { get; set; }
         public Position Position { get; set; }
-        public List<PlayerAction> PendingActions { get; set; }
+        public int TorpedoSalvoCount { get; set; }
 
         public static GameObject FromStateList(Guid id, List<int> stateList)
         {
-            return new GameObject
+            if (stateList.Count == 8)
             {
-                Id = id,
-                Size = stateList[0],
-                Speed = stateList[1],
-                CurrentHeading = stateList[2],
-                GameObjectType = (ObjectTypes) stateList[3],
-                Position = new Position {X = stateList[4], Y = stateList[5]}
-            };
+                return new GameObject
+                {
+                    Id = id,
+                    Size = stateList[0],
+                    Speed = stateList[1],
+                    CurrentHeading = stateList[2],
+                    GameObjectType = (ObjectTypes) stateList[3],
+                    Position = new Position {X = stateList[4], Y = stateList[5]},
+                    TorpedoSalvoCount = stateList[7]
+                };
+            }
+            else
+            {
+                return new GameObject
+                {
+                    Id = id,
+                    Size = stateList[0],
+                    Speed = stateList[1],
+                    CurrentHeading = stateList[2],
+                    GameObjectType = (ObjectTypes) stateList[3],
+                    Position = new Position {X = stateList[4], Y = stateList[5]}
+                };
+            }
         }
     }
 }

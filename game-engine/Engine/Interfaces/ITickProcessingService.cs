@@ -5,6 +5,6 @@ namespace Engine.Interfaces
 {
     public interface ITickProcessingService
     {
-        void SimulateTick(IList<BotObject> bot);
+        void SimulateTick();
     }
 }

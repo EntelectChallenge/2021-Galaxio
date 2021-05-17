@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Domain.Enums;
 using Domain.Models;
-using Engine.Models;
 using Engine.Services;
 using NUnit.Framework;
 
@@ -127,6 +126,30 @@ namespace EngineTests.ServiceTests
                 EngineConfigFake.Value.WorldFood.StartingFoodCount -
                 EngineConfigFake.Value.BotCount * EngineConfigFake.Value.WorldFood.PlayerSafeFood,
                 placedFoodList.Count + 4);
+            
+            List<GameObject> placedSuperfoodList = placedFoodList.FindAll(p => p.GameObjectType == GameObjectType.Superfood);
+            Assert.AreEqual(80,placedSuperfoodList.Count);
+        }
+        
+        [Test]
+        public void GivenPlayerSeedsAndStartingFood_WhenGenerateWorldFood_ThenReturnListOfWorldSuperfood()
+        {
+            var playerSeeds = new List<int>
+            {
+                12354789,
+                58228,
+                656846,
+                7108040
+            };
+
+            List<GameObject> startingFoodList =
+                worldObjectGenerationService.GeneratePlayerStartingFood(playerSeeds, new List<GameObject>());
+            List<GameObject> placedFoodList =
+                worldObjectGenerationService.GenerateWorldFood(startingFoodList, playerSeeds, new List<GameObject>());
+
+            
+            List<GameObject> placedSuperfoodList = placedFoodList.FindAll(p => p.GameObjectType == GameObjectType.Superfood);
+            Assert.AreEqual(80,placedSuperfoodList.Count);
         }
 
         [Test]

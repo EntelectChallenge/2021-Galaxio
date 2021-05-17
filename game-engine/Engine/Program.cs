@@ -86,6 +86,7 @@ namespace Engine
             services.AddTransient<IActionHandler, StopActionHandler>();
             services.AddTransient<IActionHandler, StartAfterburnerActionHandler>();
             services.AddTransient<IActionHandler, StopAfterburnerActionHandler>();
+            services.AddTransient<IActionHandler, FireTorpedoActionHandler>();
         }
 
         private static void RegisterCollisionHandlers(IServiceCollection services)
@@ -95,6 +96,8 @@ namespace Engine
             services.AddTransient<ICollisionHandler, WormholeCollisionHandler>();
             services.AddTransient<ICollisionHandler, GasCloudCollisionHandler>();
             services.AddTransient<ICollisionHandler, AsteroidFieldCollisionHandler>();
+            services.AddTransient<ICollisionHandler, SuperfoodCollisionHandler>();
+            services.AddTransient<ICollisionHandler, TorpedoCollisionHandler>();
         }
 
         public static void CloseApplication()

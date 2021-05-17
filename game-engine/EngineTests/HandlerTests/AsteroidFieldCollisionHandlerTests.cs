@@ -56,8 +56,7 @@ namespace EngineTests.HandlerTests
             Assert.True(botAfter.Effects == Effects.AsteroidField);
             Assert.AreEqual(19, bot.Speed);
         }
-        
-                
+
         [Test]
         public void GivenBot_WhenUpdateBotSpeedWithBigBot_ReturnOne()
         {

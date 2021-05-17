@@ -25,11 +25,11 @@ namespace Engine.Handlers.Collisions
             engineConfig = engineConfigOptions.Value;
         }
 
-        public bool IsApplicable(GameObject gameObject, BotObject bot) => gameObject.GameObjectType == GameObjectType.Wormhole;
+        public bool IsApplicable(GameObject gameObject, MovableGameObject mover) => gameObject.GameObjectType == GameObjectType.Wormhole;
 
-        public bool ResolveCollision(GameObject gameObject, BotObject bot)
+        public bool ResolveCollision(GameObject gameObject, MovableGameObject mover)
         {
-            if (gameObject.Size < bot.Size)
+            if (gameObject.Size < mover.Size)
             {
                 return true;
             }
@@ -45,11 +45,14 @@ namespace Engine.Handlers.Collisions
 
             var resultingPosition = vectorCalculatorService.GetPositionFrom(
                 counterpartWormhole.Position,
-                counterpartWormhole.Size + bot.Size,
-                bot.CurrentHeading);
+                counterpartWormhole.Size + mover.Size,
+                mover.CurrentHeading);
 
-            bot.Position = resultingPosition;
-            bot.Score = engineConfig.ScoreRates[GameObjectType.Wormhole];
+            mover.Position = resultingPosition;
+            if (mover is BotObject botObject)
+            {
+                botObject.Score = engineConfig.ScoreRates[GameObjectType.Wormhole];
+            }
 
             var newSize = (int) Math.Ceiling(wormholePair.Item1.Size * engineConfig.ConsumptionRatio[GameObjectType.Wormhole]);
             wormholePair.Item1.Size = newSize < engineConfig.Wormholes.MinSize ? engineConfig.Wormholes.MinSize : newSize;

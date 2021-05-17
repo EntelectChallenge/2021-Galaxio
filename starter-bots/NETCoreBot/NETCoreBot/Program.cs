@@ -96,7 +96,7 @@ namespace NETCoreBot
 
                         var token = Environment.GetEnvironmentVariable("REGISTRATION_TOKEN");
                         token = !string.IsNullOrWhiteSpace(token) ? token : Guid.NewGuid().ToString();
-                        
+
                         Thread.Sleep(1000);
                         Console.WriteLine("Registering with the runner...");
                         connection.SendAsync("Register", token, "NetNickName");

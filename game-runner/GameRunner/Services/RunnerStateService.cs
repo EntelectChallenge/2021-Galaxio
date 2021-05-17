@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
@@ -31,7 +31,7 @@ namespace GameRunner.Services
         public int TotalConnectedClients => ActiveConnections.Count;
         public int TotalConnectedBots => RegistrationTokens.Count;
         public int TotalConnections => AllConnections.Count;
-        public string FailureReason { get; }
+        public string FailureReason { get; set; }
         public bool IsCoreReady => GetEngine() != default && GetLogger() != default;
         public GameCompletePayload GameCompletePayload
         {
@@ -95,10 +95,8 @@ namespace GameRunner.Services
                 return;
             }
 
-            Logger.LogDebug("Remove Connection", $"Removing Connection ID: {connection.Key} for Bot Guid: {connection.Value.ToString()}");
-            Logger.LogDebug("ActiveConnections", $"Active Connections Entry Count: {ActiveConnections.Count}");
+            Logger.LogDebug("Remove Connection", $"Removing Connection ID: {connection.Value} for Bot Guid: {connection.Key.ToString()}");
             ActiveConnections.Remove(connection.Key);
-            Logger.LogDebug("ActiveConnections", $"Active Connections Post Removal Entry Count: {ActiveConnections.Count}");
         }
 
         public Guid? GetBotGuidFromConnectionId(string connectionId)

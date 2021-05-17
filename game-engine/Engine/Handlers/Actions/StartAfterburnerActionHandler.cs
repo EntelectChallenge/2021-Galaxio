@@ -19,7 +19,7 @@ namespace Engine.Handlers.Actions
             this.engineConfig = engineConfig.Value;
         }
 
-        public bool IsApplicable(PlayerAction botCurrentAction) => botCurrentAction?.Action == PlayerActions.StartAfterburner;
+        public bool IsApplicable(PlayerAction action) => action?.Action == PlayerActions.StartAfterburner;
 
         public void ProcessAction(BotObject bot)
         {

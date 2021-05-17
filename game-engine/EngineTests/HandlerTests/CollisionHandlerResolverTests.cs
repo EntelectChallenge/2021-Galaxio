@@ -28,7 +28,8 @@ namespace EngineTests.HandlerTests
                 new WormholeCollisionHandler(WorldStateService, VectorCalculatorService, EngineConfigFake),
                 new PlayerCollisionHandler(WorldStateService, collisionService, EngineConfigFake, new VectorCalculatorService()),
                 new GasCloudCollisionHandler(WorldStateService, EngineConfigFake),
-                new AsteroidFieldCollisionHandler(WorldStateService)
+                new AsteroidFieldCollisionHandler(WorldStateService),
+                new SuperfoodCollisionHandler(WorldStateService, EngineConfigFake)
             };
             collisionHandlerResolver = new CollisionHandlerResolver(collisionHandlers);
         }
@@ -94,6 +95,19 @@ namespace EngineTests.HandlerTests
 
             Assert.IsInstanceOf<AsteroidFieldCollisionHandler>(handler);
             Assert.True(handler.IsApplicable(asteroidField, bot));
+        }
+        
+        
+        [Test]
+        public void GivenBotAndSuperfood_WhenCollision_ResolvesSuperfoodCollisionHandler()
+        {
+            var superfood = FakeGameObjectProvider.GetSuperfoodAt(new Position(0, 0));
+            var bot = FakeGameObjectProvider.GetBotAt(new Position(8, 0));
+
+            var handler = collisionHandlerResolver.ResolveHandler(superfood, bot);
+
+            Assert.IsInstanceOf<SuperfoodCollisionHandler>(handler);
+            Assert.True(handler.IsApplicable(superfood, bot));
         }
     }
 }

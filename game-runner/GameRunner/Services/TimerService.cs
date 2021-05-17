@@ -44,12 +44,12 @@ namespace GameRunner.Services
         {
             if (runnerStateService.TotalConnections < runnerConfig.BotCount)
             {
+                var failReason = $"{runnerStateService.TotalConnections} out of {runnerConfig.BotCount} bots connected in time, runner is shutting down.";
                 Logger.LogDebug(
                     "RunnerHub.OnBotConnectionTimeout",
-                    string.Format(
-                        "{0} out of {1} bots connected in time, runner is shutting down.",
-                        runnerStateService.TotalConnections,
-                        runnerConfig.BotCount));
+                    failReason);
+
+                runnerStateService.FailureReason = failReason;
                 cloudIntegrationService.Announce(CloudCallbackType.Failed)
                     .GetAwaiter()
                     .OnCompleted(() => runnerStateService.StopApplication());
@@ -84,9 +84,11 @@ namespace GameRunner.Services
 
             if (componentTimedOut)
             {
+                var failReason = $"The following components did not connect before timeout: {string.Join(", ", components.ToArray())}";
                 Logger.LogDebug(
                     "RunnerHub.OnComponentTimeout",
-                    string.Format("The following components did not connect before timeout: {0}", string.Join(", ", components.ToArray())));
+                    failReason);
+                runnerStateService.FailureReason = failReason;
                 cloudIntegrationService.Announce(CloudCallbackType.Failed)
                     .GetAwaiter()
                     .OnCompleted(() => runnerStateService.StopApplication());

@@ -31,17 +31,23 @@ namespace Engine.Handlers.Collisions
             this.vectorCalculatorService = vectorCalculatorService;
         }
 
-        public bool IsApplicable(GameObject gameObject, BotObject bot) => gameObject.GameObjectType == GameObjectType.Player;
+        public bool IsApplicable(GameObject gameObject, MovableGameObject mover) =>
+            gameObject.GameObjectType == GameObjectType.Player && mover is BotObject;
 
-        public bool ResolveCollision(GameObject gameObject, BotObject bot)
+        public bool ResolveCollision(GameObject gameObject, MovableGameObject mover)
         {
             if (!(gameObject is BotObject go))
             {
                 throw new ArgumentException("Non player in player collision");
             }
 
+            if (!(mover is BotObject botObject))
+            {
+                throw new ArgumentException("Non player in player collision");
+            }
+
             // If the bot's ID has already been removed from the world, the bot is dead, return the alive state as false
-            if (!worldStateService.GameObjectIsInWorldState(bot.Id))
+            if (!worldStateService.GameObjectIsInWorldState(botObject.Id))
             {
                 return false;
             }
@@ -52,16 +58,16 @@ namespace Engine.Handlers.Collisions
                 return true;
             }
 
-            var botsAreEqualSize = bot.Size == go.Size;
+            var botsAreEqualSize = botObject.Size == go.Size;
             if (botsAreEqualSize)
             {
-                BounceBots(go, bot, 1);
+                BounceBots(go, botObject, 1);
                 return true;
             }
 
-            var botIsBigger = bot.Size > go.Size;
-            var consumer = botIsBigger ? bot : go;
-            var consumee = !botIsBigger ? bot : go;
+            var botIsBigger = botObject.Size > go.Size;
+            var consumer = (botIsBigger ? botObject : go) as BotObject;
+            var consumee = (!botIsBigger ? botObject : go) as BotObject;
 
             var consumedSize = collisionService.GetConsumedSizeFromPlayer(consumer, consumee);
 
@@ -71,7 +77,7 @@ namespace Engine.Handlers.Collisions
 
             worldStateService.UpdateBotSpeed(consumer);
 
-            BounceBots(consumee, consumer, (int)Math.Ceiling((consumedSize + 1d) / 2));
+            BounceBots(consumee, consumer, (int) Math.Ceiling((consumedSize + 1d) / 2));
 
             if (consumee.Size < engineConfig.MinimumPlayerSize)
             {
@@ -82,13 +88,13 @@ namespace Engine.Handlers.Collisions
 
             worldStateService.UpdateBotSpeed(consumee);
 
-            if (bot.Size > engineConfig.MinimumPlayerSize)
+            if (mover.Size > engineConfig.MinimumPlayerSize)
             {
                 return true;
             }
 
             Logger.LogInfo("BotDeath", "Bot Consumed");
-            worldStateService.RemoveGameObjectById(bot.Id);
+            worldStateService.RemoveGameObjectById(mover.Id);
             return false;
         }
 

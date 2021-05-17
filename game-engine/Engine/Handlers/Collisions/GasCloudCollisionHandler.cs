@@ -19,33 +19,55 @@ namespace Engine.Handlers.Collisions
             engineConfig = engineConfigOptions.Value;
         }
 
-        public bool IsApplicable(GameObject gameObject, BotObject bot) => gameObject.GameObjectType == GameObjectType.GasCloud;
+        public bool IsApplicable(GameObject gameObject, MovableGameObject mover) => gameObject.GameObjectType == GameObjectType.GasCloud;
 
-        public bool ResolveCollision(GameObject gameObject, BotObject bot)
+        public bool ResolveCollision(GameObject go, MovableGameObject mover)
         {
             var currentEffect = new ActiveEffect
             {
-                Bot = bot,
+                Bot = mover,
                 Effect = Effects.GasCloud
             };
 
-            /* If the effect is not registered, add it to the list. */
-            if (worldStateService.GetActiveEffectByType(bot.Id, Effects.GasCloud) != default)
+
+            if (mover is BotObject bot)
             {
+                if (worldStateService.GetActiveEffectByType(bot.Id, Effects.GasCloud) != default)
+                {
+                    if (bot.Size < engineConfig.MinimumPlayerSize)
+                    {
+                        worldStateService.RemoveGameObjectById(bot.Id);
+                    }
+                    return bot.Size >= engineConfig.MinimumPlayerSize;
+                }
+
+                worldStateService.AddActiveEffect(currentEffect);
+                bot.Size -= engineConfig.GasClouds.AffectPerTick;
                 if (bot.Size < engineConfig.MinimumPlayerSize)
                 {
                     worldStateService.RemoveGameObjectById(bot.Id);
                 }
                 return bot.Size >= engineConfig.MinimumPlayerSize;
             }
-
-            worldStateService.AddActiveEffect(currentEffect);
-            bot.Size -= engineConfig.GasClouds.AffectPerTick;
-            if (bot.Size < engineConfig.MinimumPlayerSize)
+            else
             {
-                worldStateService.RemoveGameObjectById(bot.Id);
+                var moverStartingSize = mover.Size;
+                mover.Size -= go.Size;
+                go.Size -= moverStartingSize;
+                if (go.Size <= 0)
+                {
+                    go.Size = 0;
+                    worldStateService.RemoveGameObjectById(go.Id);
+                }
+
+                if (mover.Size <= 0)
+                {
+                    mover.Size = 0;
+                    worldStateService.RemoveGameObjectById(mover.Id);
+                }
+
+                return mover.Size > 0;
             }
-            return bot.Size >= engineConfig.MinimumPlayerSize;
         }
     }
 }

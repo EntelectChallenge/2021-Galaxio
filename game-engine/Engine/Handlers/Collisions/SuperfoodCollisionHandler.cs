@@ -1,5 +1,4 @@
-﻿using System;
-using Domain.Enums;
+﻿using Domain.Enums;
 using Domain.Models;
 using Engine.Handlers.Interfaces;
 using Engine.Interfaces;
@@ -8,18 +7,18 @@ using Engine.Services;
 
 namespace Engine.Handlers.Collisions
 {
-    public class FoodCollisionHandler : ICollisionHandler
+    public class SuperfoodCollisionHandler : ICollisionHandler
     {
         private readonly IWorldStateService worldStateService;
         private readonly EngineConfig engineConfig;
 
-        public FoodCollisionHandler(IWorldStateService worldStateService, IConfigurationService engineConfigOptions)
+        public SuperfoodCollisionHandler(IWorldStateService worldStateService, IConfigurationService engineConfigOptions)
         {
             this.worldStateService = worldStateService;
             engineConfig = engineConfigOptions.Value;
         }
 
-        public bool IsApplicable(GameObject gameObject, MovableGameObject mover) => gameObject.GameObjectType == GameObjectType.Food;
+        public bool IsApplicable(GameObject gameObject, MovableGameObject mover) => gameObject.GameObjectType == GameObjectType.Superfood;
 
         public bool ResolveCollision(GameObject go, MovableGameObject mover)
         {
@@ -40,22 +39,29 @@ namespace Engine.Handlers.Collisions
                 return true;
             }
 
-            if (mover is BotObject botObject)
+            if (mover is BotObject bot)
             {
-                var superFoodEffect = worldStateService.GetActiveEffectByType(botObject.Id, Effects.Superfood);
-                if (superFoodEffect!= null && superFoodEffect.EffectDuration > 0)
+                bot.Size += go.Size;
+                bot.Score += engineConfig.ScoreRates[GameObjectType.Superfood];
+
+                var superFoodEffect = worldStateService.GetActiveEffectByType(bot.Id, Effects.Superfood);
+                if (superFoodEffect!= null)
                 {
-                    botObject.Size += go.Size * (int)engineConfig.ConsumptionRatio[GameObjectType.Superfood];
+                    superFoodEffect.EffectDuration += engineConfig.WorldFood.SuperfoodEffectDuration;
                 }
                 else
                 {
-                    botObject.Size += go.Size;
+                    var currentEffect = new ActiveEffect
+                    {
+                        Bot = bot,
+                        Effect = Effects.Superfood,
+                        EffectDuration = engineConfig.WorldFood.SuperfoodEffectDuration
+                    };
+                    worldStateService.AddActiveEffect(currentEffect);
                 }
-
+                worldStateService.UpdateBotSpeed(bot);
                 go.Size = 0;
-                botObject.Score += engineConfig.ScoreRates[GameObjectType.Food];
                 worldStateService.RemoveGameObjectById(go.Id);
-                worldStateService.UpdateBotSpeed(mover);
             }
             else
             {
@@ -73,8 +79,6 @@ namespace Engine.Handlers.Collisions
                     mover.Size = 0;
                     worldStateService.RemoveGameObjectById(mover.Id);
                 }
-
-                return mover.Size > 0;
             }
             return true;
         }
