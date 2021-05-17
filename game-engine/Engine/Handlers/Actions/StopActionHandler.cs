@@ -6,7 +6,7 @@ namespace Engine.Handlers.Actions
 {
     public class StopActionHandler : IActionHandler
     {
-        public bool IsApplicable(PlayerAction botCurrentAction) => botCurrentAction.Action == PlayerActions.Stop;
+        public bool IsApplicable(PlayerAction action) => action.Action == PlayerActions.Stop;
 
         public void ProcessAction(BotObject bot)
         {

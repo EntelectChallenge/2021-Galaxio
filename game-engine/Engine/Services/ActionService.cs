@@ -1,4 +1,5 @@
 ﻿using System;
+using Domain.Enums;
 using Domain.Models;
 using Engine.Handlers.Interfaces;
 using Engine.Interfaces;
@@ -36,7 +37,7 @@ namespace Engine.Services
                 return;
             }
 
-            var handler = actionHandlerResolver.ResolveHandler(bot.CurrentAction);
+            IActionHandler handler = actionHandlerResolver.ResolveHandler(bot.CurrentAction);
             handler.ProcessAction(bot);
             bot.LastAction = bot.CurrentAction;
         }

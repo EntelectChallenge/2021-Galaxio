@@ -31,9 +31,11 @@ namespace GameRunner.Controllers
         {
             if (connectionInformation.Status == ConnectionStatus.Disconnected)
             {
+                var failReason = $"Engine informed of Disconnect. Reason: {connectionInformation.Reason}.\n Disconnecting all clients and stopping";
                 Logger.LogError(
                     "Connections",
-                    $"Engine informed of Disconnect. Reason: {connectionInformation.Reason}.\n Disconnecting all clients and stopping");
+                    failReason);
+                runnerStateService.FailureReason = failReason;
                 cloudIntegrationService.Announce(CloudCallbackType.Failed);
                 hubContext.Clients.All.SendAsync("Disconnect", new Guid());
                 runnerStateService.StopApplication();
@@ -47,9 +49,11 @@ namespace GameRunner.Controllers
         {
             if (connectionInformation.Status == ConnectionStatus.Disconnected)
             {
+                var failReason = $"Logger informed of Disconnect. Reason: {connectionInformation.Reason}.\n Disconnecting all clients and stopping";
                 Logger.LogError(
                     "Connections",
-                    $"Logger informed of Disconnect. Reason: {connectionInformation.Reason}.\n Disconnecting all clients and stopping");
+                    failReason);
+                runnerStateService.FailureReason = failReason;
                 cloudIntegrationService.Announce(CloudCallbackType.Failed);
                 hubContext.Clients.All.SendAsync("Disconnect", new Guid());
                 runnerStateService.StopApplication();

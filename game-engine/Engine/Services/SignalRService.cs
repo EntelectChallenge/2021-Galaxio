@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -27,6 +28,7 @@ namespace Engine.Services
         private readonly EngineConfig engineConfig;
         private HubConnection connection;
         private string runnerUrl;
+        private Stopwatch tickStopwatch;
 
         public SignalRService(
             IWorldStateService worldStateService,
@@ -138,7 +140,10 @@ namespace Engine.Services
 
         private void OnTickAck(int arg)
         {
+            tickStopwatch = Stopwatch.StartNew();
+            Logger.LogDebug("Core", $"Tick Acked. Time Since last Tick Ack: {tickStopwatch.ElapsedMilliseconds}");
             engineService.TickAcked = arg;
+            tickStopwatch.Restart();
         }
 
         private void OnStartGame()

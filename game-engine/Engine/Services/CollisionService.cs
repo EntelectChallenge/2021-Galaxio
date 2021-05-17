@@ -27,7 +27,7 @@ namespace Engine.Services
         public int GetConsumedSizeFromPlayer(GameObject consumer, GameObject consumee) =>
             (int) Math.Ceiling(Math.Max(consumer.Size * engineConfig.ConsumptionRatio[consumer.GameObjectType], consumee.Size));
 
-        public List<GameObject> GetCollisions(BotObject bot)
+        public List<GameObject> GetCollisions(MovableGameObject bot)
         {
             IList<GameObject> gameObjects = worldStateService.GetCurrentGameObjects();
             return gameObjects.Where(go => go.Id != bot.Id && vectorCalculatorService.HasOverlap(go, bot)).ToList();

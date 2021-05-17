@@ -9,6 +9,7 @@ using Domain.Services;
 using Engine.Interfaces;
 using Engine.Models;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Engine.Services
@@ -69,16 +70,20 @@ namespace Engine.Services
                     }
                 }
 
-                Logger.LogInfo("RunLoop", $"Game Tick Time: {stopwatch.ElapsedMilliseconds} milliseconds");
+                Logger.LogInfo("RunLoop", $"Game Loop Time: {stopwatch.ElapsedMilliseconds} milliseconds");
                 stopwatch.Restart();
 
                 Logger.LogDebug("Engine.ConnectionState", hubConnection.State);
+                var elapsedPreTick = stopwatch.ElapsedMilliseconds;
                 await ProcessGameTick();
+                Logger.LogDebug("RunLoop", $"Processing tick took {stopwatch.ElapsedMilliseconds - elapsedPreTick}ms");
                 await hubConnection.InvokeAsync("PublishGameState", worldStateService.GetPublishedState());
+                var elapsedTime = stopwatch.ElapsedMilliseconds;
                 while (TickAcked != worldStateService.GetState().World.CurrentTick)
                 {
                     continue;
                 }
+                Logger.LogDebug("RunLoop", $"Waited {stopwatch.ElapsedMilliseconds - elapsedTime}ms for TickAck");
 
             } while (!HasWinner && hubConnection.State == HubConnectionState.Connected);
 
@@ -123,7 +128,7 @@ namespace Engine.Services
                 actionService.ApplyActionToBot(bot);
             }
 
-            tickProcessingService.SimulateTick(bots);
+            tickProcessingService.SimulateTick();
         }
 
         private void CheckWinConditions()

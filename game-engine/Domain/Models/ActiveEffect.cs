@@ -4,7 +4,8 @@ namespace Domain.Models
 {
     public class ActiveEffect
     {
-        public BotObject Bot { get; set; }
+        public MovableGameObject Bot { get; set; }
         public Effects Effect { get; set; }
+        public int EffectDuration { get; set; }
     }
 }

@@ -17,6 +17,8 @@ namespace NETCoreBot.Services
         private PlayerAction lastAction;
         private int timeSinceLastAction;
         private GameObject _target;
+        private bool _targetIsPlayer = false;
+        private GameObject _worldCenter;
 
         public BotService()
         {
@@ -41,7 +43,7 @@ namespace NETCoreBot.Services
 
         public bool ComputeNextPlayerAction(PlayerAction playerAction)
         {
-            var actionId = 1; // always move forward
+            var actionId = 1;
             var heading = 90;
 
             if (!_gameState.PlayerGameObjects.Exists(b => b.Id == _bot.Id))
@@ -50,10 +52,9 @@ namespace NETCoreBot.Services
                 return false;
             }
 
-            if (_target == null)
+            if (_target == null || _target == _worldCenter)
             {
                 Console.WriteLine("No Current Target, resolving new target");
-
                 heading = ResolveNewTarget();
             }
             else
@@ -91,17 +92,25 @@ namespace NETCoreBot.Services
 
             if (distanceFromWorldCenter + (1.5 * _bot.Size) > _gameState.World.Radius)
             {
+                _worldCenter = new GameObject
+                {
+                    Position = new Position
+                    {
+                        X = 0,
+                        Y = 0
+                    }
+                };
                 heading = GetDirection(
                     _bot,
-                    new GameObject
-                    {
-                        Position = new Position
-                        {
-                            X = 0,
-                            Y = 0
-                        }
-                    });
+                    _worldCenter);
                 Console.WriteLine("Near the edge, going to the center");
+                _target = _worldCenter;
+            }
+
+            if ((_targetIsPlayer || _target == _worldCenter) && _bot.Size > 20 && _bot.TorpedoSalvoCount > 0)
+            {
+                Console.WriteLine("Firing Torpedoes at target");
+                actionId = 5;
             }
 
             playerAction.Action = actionId;
@@ -129,37 +138,39 @@ namespace NETCoreBot.Services
 
             var directionToNearestPlayer = GetDirection(_bot, nearestPlayer);
             var directionToNearestFood = GetDirection(_bot, nearestFood);
-            Console.WriteLine(JsonConvert.SerializeObject(_bot));
-            Console.WriteLine(JsonConvert.SerializeObject(nearestPlayer));
+
             if (nearestPlayer.Size > _bot.Size)
             {
                 heading = GetAttackerResolution(_bot, nearestPlayer, nearestFood);
+                _targetIsPlayer = false;
             }
             else if (nearestPlayer.Size < _bot.Size)
             {
                 heading = GetDirection(_bot, nearestPlayer);
                 _target = nearestPlayer;
+                _targetIsPlayer = true;
                 Console.WriteLine("Chasing Smaller Player");
             }
             else if (nearestFood != null)
             {
                 heading = GetDirection(_bot, nearestFood);
                 _target = nearestFood;
+                _targetIsPlayer = false;
                 Console.WriteLine("Going for a Feeding");
             }
             else
             {
+                _target = _worldCenter;
                 heading = GetDirection(
                     _bot,
-                    new GameObject
-                    {
-                        Position = new Position
-                        {
-                            X = 0,
-                            Y = 0
-                        }
-                    });
+                    _worldCenter);
+                _targetIsPlayer = false;
                 Console.WriteLine("Couldn't find anything, going to the center");
+            }
+
+            if (_target == _worldCenter)
+            {
+                heading = GetDirection(_bot, nearestPlayer);
             }
 
             return heading;
@@ -174,8 +185,6 @@ namespace NETCoreBot.Services
 
             var distanceToAttacker = GetDistanceBetween(attacker);
             var distanceBetweenAttackerAndFood = GetDistanceBetween(attacker, closestFood);
-
-            Console.WriteLine($"AtkSpd: {attacker.Speed}, DistAtk: {distanceToAttacker}, DistAtkAndFood: {distanceBetweenAttackerAndFood}, Resolution: {(distanceToAttacker > attacker.Speed )}{( distanceBetweenAttackerAndFood > distanceToAttacker)}");
 
             if (distanceToAttacker > attacker.Speed &&
                 distanceBetweenAttackerAndFood > distanceToAttacker)

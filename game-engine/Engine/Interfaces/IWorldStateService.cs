@@ -29,5 +29,6 @@ namespace Engine.Interfaces
         void UpdateGameObject(GameObject gameObject);
         GameCompletePayload GenerateGameCompletePayload();
         List<BotObject> FinalisePlayerPlacements();
+        List<MovableGameObject> GetMovableObjects();
     }
 }

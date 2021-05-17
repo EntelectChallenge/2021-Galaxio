@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using Domain.Enums;
 using Domain.Models;
 using Engine.Interfaces;
@@ -26,12 +27,17 @@ namespace Engine.Services
             // Food must always be divisible by number of bots
             var foodPerPlacedFood = (engineConfig.WorldFood.StartingFoodCount - placedFood.Count) / placedFood.Count;
             var startFoodTraces = placedFood.Count;
+
+            var superfoodChance = engineConfig.WorldFood.SuperfoodSpawnChance * 359;
+            
             for (var index = 0; index < startFoodTraces; index++)
             {
                 var placedFoodTracker = foodPerPlacedFood;
                 var playerIndex = index % engineConfig.BotCount;
                 var playerSeed = playerSeeds[playerIndex];
                 var originFood = placedFood[index];
+                var superfoodAmount = engineConfig.WorldFood.MaxSuperfoodCount / startFoodTraces;
+                var placedSuperfoodTracker = 0;
 
                 var lastPlacedFood = FirstFoodPlacementCalculation(originFood, playerSeed, gameObjects, placedFood);
                 playerSeed += playerSeed % 359;
@@ -53,22 +59,51 @@ namespace Engine.Services
                     }
 
                     var foodPosition = vectorCalculatorService.GetPositionFrom(lastPlacedFood.Position, distance, heading);
-                    var food = CreateFoodObjectAtPosition(Guid.NewGuid(), foodPosition);
-                    var isValid = CheckPlacementValidity(
-                        food,
-                        gameObjects,
-                        lastPlacedFood.Position,
-                        engineConfig.WorldFood.FoodSize + engineConfig.WorldFood.MinSeparation,
-                        engineConfig.WorldFood.MaxSeparation);
-                    if (!isValid)
+                    
+                    if (placedSuperfoodTracker < superfoodAmount &&
+                        (heading <= superfoodChance  || 
+                         (180 - superfoodChance/2 <= heading  && heading <= 180 + superfoodChance/2)  ||
+                         359 - superfoodChance <= heading))
                     {
-                        placedFoodTracker++;
+                        var superfood = CreateSuperfoodObjectAtPosition(Guid.NewGuid(), foodPosition);
+                        var isValid = CheckPlacementValidity(
+                            superfood,
+                            gameObjects,
+                            lastPlacedFood.Position,
+                            engineConfig.WorldFood.FoodSize + engineConfig.WorldFood.MinSeparation,
+                            engineConfig.WorldFood.MaxSeparation);
+
+                        if (!isValid)
+                        {
+                            placedFoodTracker++;
+                        } 
+                        else
+                        {
+                            gameObjects.Add(superfood);
+                            lastPlacedFood = superfood;
+                            placedSuperfoodTracker++;
+                        }
                     }
+
                     else
                     {
-                        gameObjects.Add(food);
-                        placedFood.Add(food);
-                        lastPlacedFood = food;
+                        var food = CreateFoodObjectAtPosition(Guid.NewGuid(), foodPosition);
+                        var isValid = CheckPlacementValidity(
+                            food,
+                            gameObjects,
+                            lastPlacedFood.Position,
+                            engineConfig.WorldFood.FoodSize + engineConfig.WorldFood.MinSeparation,
+                            engineConfig.WorldFood.MaxSeparation);
+                        if (!isValid)
+                        {
+                            placedFoodTracker++;
+                        }
+                        else
+                        {
+                            gameObjects.Add(food);
+                            placedFood.Add(food);
+                            lastPlacedFood = food;
+                        }
                     }
                 }
             }
@@ -176,7 +211,6 @@ namespace Engine.Services
                     {
                         playerSeed += 1;
                     }
-
                     var foodPosition = vectorCalculatorService.GetPositionFrom(startingPositions[i], distance, heading);
                     var food = CreateFoodObjectAtPosition(Guid.NewGuid(), foodPosition);
                     var isValid = CheckPlacementValidity(
@@ -240,6 +274,9 @@ namespace Engine.Services
 
         public GameObject CreateFoodObjectAtPosition(Guid id, Position position) =>
             CreateObjectAtPosition(id, position, GameObjectType.Food, engineConfig.WorldFood.FoodSize);
+        
+        public GameObject CreateSuperfoodObjectAtPosition(Guid id, Position position) =>
+            CreateObjectAtPosition(id, position, GameObjectType.Superfood, engineConfig.WorldFood.FoodSize);
 
         public GameObject CreateObjectAtPosition(
             Guid id,

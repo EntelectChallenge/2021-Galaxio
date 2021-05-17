@@ -27,6 +27,16 @@ namespace Engine.Models
         public AfterburnerConfig Afterburners { get; set; }
         public WorldObstacleConfig GasClouds { get; set; }
         public WorldObstacleConfig AsteroidFields { get; set; }
+        public TorpedoConfig Torpedo { get; set; }
+    }
+
+    public class TorpedoConfig
+    {
+        public int ChargeRate { get; set; }
+        public int MaxChargeCount { get; set; }
+        public int Speed { get; set; }
+        public int Cost { get; set; }
+        public int Size { get; set; }
     }
 
     public class WormholeConfig
@@ -68,6 +78,10 @@ namespace Engine.Models
         public int FoodSize { get; set; }
         public int MinSeparation { get; set; }
         public int MaxConsumptionSize { get; set; }
+        public decimal SuperfoodSpawnChance { get; set; }
+        public int SuperfoodEffectDuration { get; set; }
+        public int MaxSuperfoodCount { get; set; }
+
     }
 
     public class AfterburnerConfig
