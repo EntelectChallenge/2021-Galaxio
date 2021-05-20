@@ -6,12 +6,13 @@ import galaxio.model.GameObject
 import galaxio.model.GameState
 import galaxio.model.dto.GameStateDto
 import galaxio.service.BotService
-import java.io.EOFException
 import java.util.*
 import java.util.concurrent.TimeUnit
-import java.util.logging.LogManager
 
 object Main {
+	// NOTE: You can change the nickname of your bot here.
+	private const val botNickname = "KotlinBot"
+
 	private fun getRunnerUrl(): String {
 		var ip = System.getenv("RUNNER_IPV4")
 		if (ip == null || ip.isBlank()) {
@@ -61,7 +62,7 @@ object Main {
 			println("Connection established with runner.")
 
 			Thread.sleep(1000)
-			hubConnection.send("Register", token, "KotlinBot")
+			hubConnection.send("Register", token, botNickname)
 
 			while (!shouldQuit) {
 				Thread.sleep(20)
