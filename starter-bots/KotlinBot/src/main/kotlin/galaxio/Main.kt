@@ -26,7 +26,7 @@ object Main {
 
 	@JvmStatic
 	fun main(args: Array<String>) {
-		val token = System.getenv("TOKEN") ?: UUID.randomUUID().toString()
+		val token = System.getenv("REGISTRATION_TOKEN") ?: UUID.randomUUID().toString()
 		val url = getRunnerUrl()
 		var moveComputed = true
 
