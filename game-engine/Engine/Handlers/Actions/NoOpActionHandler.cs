@@ -3,7 +3,7 @@ using Engine.Handlers.Interfaces;
 
 namespace Engine.Handlers.Actions
 {
-    public class NoOpActionHandler: IActionHandler
+    public class NoOpActionHandler : IActionHandler
     {
         public bool IsApplicable(PlayerAction action) => false;
 

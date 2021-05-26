@@ -36,7 +36,7 @@ namespace EngineTests.HandlerTests
         {
             WorldStateService.GenerateStartingWorld();
             var state = WorldStateService.GetState();
-            var superfood = FakeGameObjectProvider.GetSuperfoodAt(new Position(0,10));
+            var superfood = FakeGameObjectProvider.GetSuperfoodAt(new Position(0, 10));
 
             var bot = FakeGameObjectProvider.GetBotAt(superfood.Position);
 

@@ -36,7 +36,7 @@ namespace Logger
             // Singletons are instantiated once and remain the same through the lifecycle of the app.
 
             // Transient are created each time they are called
-            services.AddTransient<ILogRecorderService, LogRecorder>();
+            services.AddSingleton<ILogRecorderService, LogRecorder>();
 
             // Scope services are created once for each scope
         }

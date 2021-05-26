@@ -54,7 +54,7 @@ namespace EngineTests.Fakes
             worldStateService.AddGameObject(bot);
             return bot;
         }
-        
+
         public GameObject GetSuperfoodAt(Position position)
         {
             var superfood = new GameObject

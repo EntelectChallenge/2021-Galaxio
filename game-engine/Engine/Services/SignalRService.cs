@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -14,7 +13,6 @@ using Engine.Models;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Engine.Services
@@ -28,7 +26,6 @@ namespace Engine.Services
         private readonly EngineConfig engineConfig;
         private HubConnection connection;
         private string runnerUrl;
-        private Stopwatch tickStopwatch;
 
         public SignalRService(
             IWorldStateService worldStateService,
@@ -84,6 +81,7 @@ namespace Engine.Services
                         Thread.Sleep(1000);
                         continue;
                     }
+
                     Logger.LogDebug("Core.Startup", $"Can see runner at {runnerUrl}");
                     canSeeRunner = true;
                 }
@@ -91,11 +89,7 @@ namespace Engine.Services
 
             Logger.LogDebug("SignalR.Startup", $"Connecting SignalR to {runnerUrl}");
             connection = new HubConnectionBuilder().WithUrl($"{runnerUrl}/runnerhub")
-                .AddJsonProtocol(options => { options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()); })
-                .ConfigureLogging(logging =>
-                {
-                    logging.SetMinimumLevel(LogLevel.Information);
-                })
+                .ConfigureLogging(logging => { logging.SetMinimumLevel(LogLevel.Information); })
                 .Build();
             try
             {
@@ -126,24 +120,22 @@ namespace Engine.Services
                             }
                             catch (Exception e)
                             {
-                                Logger.LogError("Core",$"Failed to run GameRunLoop with error: {e.Message}");
+                                Logger.LogError("Core", $"Failed to run GameRunLoop with error: {e.Message}");
+                                Logger.LogDebug("Core", e.StackTrace);
                                 await ShutdownWithError(e);
                             }
                         });
             }
             catch (Exception e)
             {
-                Logger.LogError("Core",$"Failed to run SignalR with error: {e.Message}");
+                Logger.LogError("Core", $"Failed to run SignalR with error: {e.Message}");
                 await ShutdownWithError(e);
             }
         }
 
         private void OnTickAck(int arg)
         {
-            tickStopwatch = Stopwatch.StartNew();
-            Logger.LogDebug("Core", $"Tick Acked. Time Since last Tick Ack: {tickStopwatch.ElapsedMilliseconds}");
             engineService.TickAcked = arg;
-            tickStopwatch.Restart();
         }
 
         private void OnStartGame()
@@ -210,22 +202,23 @@ namespace Engine.Services
             using var httpClient = new HttpClient();
             try
             {
-                var connectionInformation = new ConnectionInformation{Reason = "Shutdown called before a winner was found", Status = ConnectionStatus.Disconnected};
+                var connectionInformation = new ConnectionInformation
+                {
+                    Reason = "Shutdown called before a winner was found",
+                    Status = ConnectionStatus.Disconnected
+                };
                 var content = new StringContent(JsonConvert.SerializeObject(connectionInformation), Encoding.UTF8, "application/json");
                 var result = await httpClient.PostAsync($"{runnerUrl}/api/connections/engine", content);
                 if (result.StatusCode != HttpStatusCode.OK)
                 {
-                    Logger.LogError(
-                        "Shutdown",
-                        $"Tried to inform runner of a disconnect but could not reach the runner.");
+                    Logger.LogError("Shutdown", "Tried to inform runner of a disconnect but could not reach the runner.");
                 }
             }
             catch (Exception)
             {
-                Logger.LogDebug(
-                    "Shutdown",
-                    $"Tried to inform runner of a disconnect but could not reach the runner.");
+                Logger.LogDebug("Shutdown", "Tried to inform runner of a disconnect but could not reach the runner.");
             }
+
             OnDisconnect(new Guid());
         }
     }

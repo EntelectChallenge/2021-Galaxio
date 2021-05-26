@@ -21,22 +21,25 @@ namespace Engine.Handlers.Actions
         {
             this.worldStateService = worldStateService;
             this.vectorCalculatorService = vectorCalculatorService;
-            this.engineConfig = configurationService.Value;
+            engineConfig = configurationService.Value;
         }
 
         public bool IsApplicable(PlayerAction action) => action.Action == PlayerActions.FireTorpedoes;
 
         public void ProcessAction(BotObject bot)
         {
-            var torpedoSalvo = new TorpedoGameObject()
+            var torpedoSalvo = new TorpedoGameObject
             {
                 Id = Guid.NewGuid(),
-                Position = vectorCalculatorService.GetPositionFrom(bot.Position, bot.Size + engineConfig.Torpedo.Size + 1, bot.CurrentAction
-                .Heading),
+                Position = vectorCalculatorService.GetPositionFrom(
+                    bot.Position,
+                    bot.Size + engineConfig.Torpedo.Size + 1,
+                    bot.CurrentAction.Heading),
                 Size = engineConfig.Torpedo.Size,
                 Speed = engineConfig.Torpedo.Speed,
                 CurrentHeading = bot.CurrentAction.Heading,
-                FiringPlayerId = bot.Id
+                FiringPlayerId = bot.Id,
+                IsMoving = true
             };
             bot.Size -= engineConfig.Torpedo.Cost;
             worldStateService.UpdateBotSpeed(bot);

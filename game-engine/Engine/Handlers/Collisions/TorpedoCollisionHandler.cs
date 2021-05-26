@@ -15,7 +15,7 @@ namespace Engine.Handlers.Collisions
 
         public TorpedoCollisionHandler(IConfigurationService configurationService, IWorldStateService worldStateService)
         {
-            this.engineConfig = configurationService.Value;
+            engineConfig = configurationService.Value;
             this.worldStateService = worldStateService;
         }
 
@@ -24,19 +24,14 @@ namespace Engine.Handlers.Collisions
 
         public bool ResolveCollision(GameObject go, MovableGameObject mover)
         {
-            if (!(mover is BotObject bot))
-            {
-                return false;
-            }
-
             if (!(go is TorpedoGameObject torpedo))
             {
                 return false;
             }
 
-            var moverStartingSize = bot.Size;
+            var moverStartingSize = mover.Size;
             var destructiveSize = go.Size;
-            bot.Size -= go.Size;
+            mover.Size -= go.Size;
             go.Size -= Math.Max(moverStartingSize, go.Size);
             if (go.Size <= 0)
             {
@@ -58,7 +53,10 @@ namespace Engine.Handlers.Collisions
             }
 
             worldStateService.UpdateBotSpeed(firingPlayer);
-            worldStateService.UpdateBotSpeed(bot);
+            if (mover is BotObject bot)
+            {
+                worldStateService.UpdateBotSpeed(bot);
+            }
 
             return mover.Size >= engineConfig.MinimumPlayerSize;
         }

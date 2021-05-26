@@ -9,8 +9,6 @@ using Domain.Services;
 using Engine.Interfaces;
 using Engine.Models;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Engine.Services
 {
@@ -43,6 +41,7 @@ namespace Engine.Services
         public async Task GameRunLoop()
         {
             var stopwatch = Stopwatch.StartNew();
+            var stop2 = Stopwatch.StartNew();
             do
             {
                 if (hubConnection.State != HubConnectionState.Connected)
@@ -54,12 +53,29 @@ namespace Engine.Services
                 {
                     if (!PendingStart)
                     {
-                        Logger.LogInfo("RunLoop", "Waiting for all bots to connect");
+                        Logger.LogInfo("Core", "Waiting for all bots to connect");
                     }
 
                     Thread.Sleep(1000);
                     continue;
                 }
+
+                stop2.Restart();
+                await ProcessGameTick();
+                Logger.LogDebug("RunLoop", $"Processing tick took {stop2.ElapsedMilliseconds}ms");
+
+                stop2.Restart();
+                var gameStateDto = worldStateService.GetPublishedState();
+                await hubConnection.InvokeAsync("PublishGameState", gameStateDto);
+                Logger.LogDebug("RunLoop", $"Published game state, Time: {stop2.ElapsedMilliseconds}");
+
+                Logger.LogDebug("RunLoop", "Waiting for Tick Ack");
+                stop2.Restart();
+                while (TickAcked != worldStateService.GetState().World.CurrentTick)
+                {
+                }
+
+                Logger.LogDebug("RunLoop", $"TickAck matches current tick, Time: {stop2.ElapsedMilliseconds}");
 
                 if (stopwatch.ElapsedMilliseconds < engineConfig.TickRate)
                 {
@@ -70,26 +86,15 @@ namespace Engine.Services
                     }
                 }
 
-                Logger.LogInfo("RunLoop", $"Game Loop Time: {stopwatch.ElapsedMilliseconds} milliseconds");
+                Logger.LogInfo("TIMER", $"Game Loop Time: {stopwatch.ElapsedMilliseconds}ms");
                 stopwatch.Restart();
+            } while (!HasWinner &&
+                hubConnection.State == HubConnectionState.Connected);
 
-                Logger.LogDebug("Engine.ConnectionState", hubConnection.State);
-                var elapsedPreTick = stopwatch.ElapsedMilliseconds;
-                await ProcessGameTick();
-                Logger.LogDebug("RunLoop", $"Processing tick took {stopwatch.ElapsedMilliseconds - elapsedPreTick}ms");
-                await hubConnection.InvokeAsync("PublishGameState", worldStateService.GetPublishedState());
-                var elapsedTime = stopwatch.ElapsedMilliseconds;
-                while (TickAcked != worldStateService.GetState().World.CurrentTick)
-                {
-                    continue;
-                }
-                Logger.LogDebug("RunLoop", $"Waited {stopwatch.ElapsedMilliseconds - elapsedTime}ms for TickAck");
-
-            } while (!HasWinner && hubConnection.State == HubConnectionState.Connected);
-
-            if (!HasWinner && hubConnection.State != HubConnectionState.Connected)
+            if (!HasWinner &&
+                hubConnection.State != HubConnectionState.Connected)
             {
-                Logger.LogError("GameRunLoop", "Runner disconnected before a winner was found");
+                Logger.LogError("RunLoop", "Runner disconnected before a winner was found");
                 throw new InvalidOperationException("Runner disconnected before a winner was found");
             }
 
@@ -98,10 +103,14 @@ namespace Engine.Services
 
         private async Task ProcessGameTick()
         {
-            Logger.LogInfo("Engine", $"Tick: {worldStateService.GetState().World.CurrentTick}, Player Count: {worldStateService.GetPlayerCount()}");
+            Logger.LogInfo(
+                "Engine",
+                $"Tick: {worldStateService.GetState().World.CurrentTick}, Player Count: {worldStateService.GetPlayerCount()}");
             IList<BotObject> bots = worldStateService.GetPlayerBots();
 
+            var stoplog = new StopWatchLogger();
             SimulateTickForBots(bots);
+            stoplog.Log("Simulation complete");
 
             IList<BotObject> aliveBots = worldStateService.GetPlayerBots();
             IEnumerable<BotObject> botsForRemoval = bots.Where(bot => !aliveBots.Contains(bot));
@@ -110,14 +119,10 @@ namespace Engine.Services
                 await hubConnection.InvokeAsync("PlayerConsumed", bot.Id);
             }
 
-            foreach (var bot in aliveBots)
-            {
-                Logger.LogDebug(bot.Id, "Size", bot.Size);
-                Logger.LogDebug(bot.Id, "Speed", bot.Speed);
-                Logger.LogDebug(bot.Id, "Position", $"{bot.Position.X}:{bot.Position.Y}");
-            }
+            stoplog.Log("Informed Consumed Bots");
 
             worldStateService.ApplyAfterTickStateChanges();
+            stoplog.Log("After Tick SC Complete");
             CheckWinConditions();
         }
 

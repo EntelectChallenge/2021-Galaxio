@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using Domain.Models;
-
-namespace Engine.Interfaces
+﻿namespace Engine.Interfaces
 {
     public interface ITickProcessingService
     {

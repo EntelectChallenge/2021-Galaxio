@@ -4,7 +4,6 @@ using Engine.Handlers.Interfaces;
 using Engine.Interfaces;
 using Engine.Models;
 using Engine.Services;
-using Microsoft.Extensions.Options;
 
 namespace Engine.Handlers.Collisions
 {
@@ -29,7 +28,6 @@ namespace Engine.Handlers.Collisions
                 Effect = Effects.GasCloud
             };
 
-
             if (mover is BotObject bot)
             {
                 if (worldStateService.GetActiveEffectByType(bot.Id, Effects.GasCloud) != default)
@@ -38,6 +36,7 @@ namespace Engine.Handlers.Collisions
                     {
                         worldStateService.RemoveGameObjectById(bot.Id);
                     }
+
                     return bot.Size >= engineConfig.MinimumPlayerSize;
                 }
 
@@ -47,27 +46,26 @@ namespace Engine.Handlers.Collisions
                 {
                     worldStateService.RemoveGameObjectById(bot.Id);
                 }
+
                 return bot.Size >= engineConfig.MinimumPlayerSize;
             }
-            else
+
+            var moverStartingSize = mover.Size;
+            mover.Size -= go.Size;
+            go.Size -= moverStartingSize;
+            if (go.Size <= 0)
             {
-                var moverStartingSize = mover.Size;
-                mover.Size -= go.Size;
-                go.Size -= moverStartingSize;
-                if (go.Size <= 0)
-                {
-                    go.Size = 0;
-                    worldStateService.RemoveGameObjectById(go.Id);
-                }
-
-                if (mover.Size <= 0)
-                {
-                    mover.Size = 0;
-                    worldStateService.RemoveGameObjectById(mover.Id);
-                }
-
-                return mover.Size > 0;
+                go.Size = 0;
+                worldStateService.RemoveGameObjectById(go.Id);
             }
+
+            if (mover.Size <= 0)
+            {
+                mover.Size = 0;
+                worldStateService.RemoveGameObjectById(mover.Id);
+            }
+
+            return mover.Size > 0;
         }
     }
 }

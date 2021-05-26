@@ -1,5 +1,4 @@
-﻿using System;
-using Domain.Enums;
+﻿using Domain.Enums;
 using Domain.Models;
 using Engine.Handlers.Interfaces;
 using Engine.Interfaces;
@@ -43,9 +42,10 @@ namespace Engine.Handlers.Collisions
             if (mover is BotObject botObject)
             {
                 var superFoodEffect = worldStateService.GetActiveEffectByType(botObject.Id, Effects.Superfood);
-                if (superFoodEffect!= null && superFoodEffect.EffectDuration > 0)
+                if (superFoodEffect != null &&
+                    superFoodEffect.EffectDuration > 0)
                 {
-                    botObject.Size += go.Size * (int)engineConfig.ConsumptionRatio[GameObjectType.Superfood];
+                    botObject.Size += go.Size * (int) engineConfig.ConsumptionRatio[GameObjectType.Superfood];
                 }
                 else
                 {
@@ -76,6 +76,7 @@ namespace Engine.Handlers.Collisions
 
                 return mover.Size > 0;
             }
+
             return true;
         }
     }

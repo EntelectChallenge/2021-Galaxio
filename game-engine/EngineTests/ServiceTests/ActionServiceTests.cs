@@ -110,7 +110,7 @@ namespace EngineTests.ServiceTests
 
             Assert.DoesNotThrow(() => actionService.ApplyActionToBot(bot));
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
-            
+
             var secondAction = FakeGameObjectProvider.GetStopAfterburnerPlayerAction(bot.Id);
             bot.PendingActions = new List<PlayerAction>
             {

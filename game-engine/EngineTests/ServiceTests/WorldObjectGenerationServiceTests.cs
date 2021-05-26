@@ -126,11 +126,11 @@ namespace EngineTests.ServiceTests
                 EngineConfigFake.Value.WorldFood.StartingFoodCount -
                 EngineConfigFake.Value.BotCount * EngineConfigFake.Value.WorldFood.PlayerSafeFood,
                 placedFoodList.Count + 4);
-            
+
             List<GameObject> placedSuperfoodList = placedFoodList.FindAll(p => p.GameObjectType == GameObjectType.Superfood);
-            Assert.AreEqual(80,placedSuperfoodList.Count);
+            Assert.AreEqual(80, placedSuperfoodList.Count);
         }
-        
+
         [Test]
         public void GivenPlayerSeedsAndStartingFood_WhenGenerateWorldFood_ThenReturnListOfWorldSuperfood()
         {
@@ -147,9 +147,8 @@ namespace EngineTests.ServiceTests
             List<GameObject> placedFoodList =
                 worldObjectGenerationService.GenerateWorldFood(startingFoodList, playerSeeds, new List<GameObject>());
 
-            
             List<GameObject> placedSuperfoodList = placedFoodList.FindAll(p => p.GameObjectType == GameObjectType.Superfood);
-            Assert.AreEqual(80,placedSuperfoodList.Count);
+            Assert.AreEqual(80, placedSuperfoodList.Count);
         }
 
         [Test]
@@ -177,7 +176,7 @@ namespace EngineTests.ServiceTests
 
             for (var i = 0; i < foodList.Count; i++)
             {
-                var playerIndex = (int) Math.Floor((double)i / EngineConfigFake.Value.WorldFood.PlayerSafeFood);
+                var playerIndex = (int) Math.Floor((double) i / EngineConfigFake.Value.WorldFood.PlayerSafeFood);
                 var distanceBetween = VectorCalculatorService.GetDistanceBetween(positions[playerIndex], foodList[i].Position);
                 Assert.IsTrue(
                     EngineConfigFake.Value.StartingPlayerSize + EngineConfigFake.Value.WorldFood.MinSeparation <= distanceBetween);
@@ -210,9 +209,9 @@ namespace EngineTests.ServiceTests
 
             List<GameObject> foodList = worldObjectGenerationService.GeneratePlayerStartingFood(playerSeeds, new List<GameObject>());
 
-            for (int i = 0; i < foodList.Count; i++)
+            for (var i = 0; i < foodList.Count; i++)
             {
-                var playerIndex = (int) Math.Floor((double)i / EngineConfigFake.Value.WorldFood.PlayerSafeFood);
+                var playerIndex = (int) Math.Floor((double) i / EngineConfigFake.Value.WorldFood.PlayerSafeFood);
                 var distanceBetween = VectorCalculatorService.GetDistanceBetween(positions[playerIndex], foodList[i].Position);
                 Assert.IsTrue(
                     EngineConfigFake.Value.StartingPlayerSize + EngineConfigFake.Value.WorldFood.MinSeparation <= distanceBetween);
@@ -474,7 +473,7 @@ namespace EngineTests.ServiceTests
         [Test]
         public void GivenAsteroidFields_WhenCheckPlacementValidityOfFood_ThenReturnTrue()
         {
-            var asteroidFields = FakeGameObjectProvider.GetAsteroidFields();
+            List<GameObject> asteroidFields = FakeGameObjectProvider.GetAsteroidFields();
             var foodPosition = new Position(-573, 682);
             var otherPosition = new Position(-573, 700);
             var food = FakeGameObjectProvider.GetFoodAt(foodPosition);
@@ -487,7 +486,7 @@ namespace EngineTests.ServiceTests
         [Test]
         public void GivenAsteroidFields_WhenCheckPlacementValidityOfFood_ThenReturnFalse()
         {
-            var asteroidFields = FakeGameObjectProvider.GetAsteroidFields();
+            List<GameObject> asteroidFields = FakeGameObjectProvider.GetAsteroidFields();
             var foodPosition = new Position(-573, 681);
             var otherPosition = new Position(-573, 700);
             var food = FakeGameObjectProvider.GetFoodAt(foodPosition);
@@ -500,7 +499,7 @@ namespace EngineTests.ServiceTests
         [Test]
         public void GivenGasClouds_WhenCheckPlacementValidityOfFood_ThenReturnTrue()
         {
-            var gasClouds = FakeGameObjectProvider.GetGasClouds();
+            List<GameObject> gasClouds = FakeGameObjectProvider.GetGasClouds();
             var foodPosition = new Position(-283, 291);
             var otherPosition = new Position(-283, 300);
             var food = FakeGameObjectProvider.GetFoodAt(foodPosition);
@@ -513,7 +512,7 @@ namespace EngineTests.ServiceTests
         [Test]
         public void GivenGasClouds_WhenCheckPlacementValidityOfFood_ThenReturnFalse()
         {
-            var gasClouds = FakeGameObjectProvider.GetGasClouds();
+            List<GameObject> gasClouds = FakeGameObjectProvider.GetGasClouds();
             var foodPosition = new Position(-283, 290);
             var otherPosition = new Position(-283, 300);
             var food = FakeGameObjectProvider.GetFoodAt(foodPosition);
