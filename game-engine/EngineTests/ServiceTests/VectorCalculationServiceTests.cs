@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Collections.Generic;
 using Domain.Models;
 using Engine.Services;
 using NUnit.Framework;
@@ -268,7 +267,7 @@ namespace EngineTests.ServiceTests
             var endPoint = new Position(4, 4);
             var heading = 45;
 
-            var result = vectorCalculatorService.CollectCollisionDetectionPointsAlongPath(startPosition, endPoint, heading);
+            List<Position> result = vectorCalculatorService.CollectCollisionDetectionPointsAlongPath(startPosition, endPoint, heading);
 
             Assert.Contains(new Position(1, 1), result);
             Assert.Contains(new Position(2, 2), result);
@@ -285,7 +284,7 @@ namespace EngineTests.ServiceTests
             var endPoint = new Position(6, 2);
             var heading = 18;
 
-            var result = vectorCalculatorService.CollectCollisionDetectionPointsAlongPath(startPosition, endPoint, heading);
+            List<Position> result = vectorCalculatorService.CollectCollisionDetectionPointsAlongPath(startPosition, endPoint, heading);
 
             Assert.Contains(new Position(1, 0), result);
             Assert.Contains(new Position(2, 1), result);
@@ -304,7 +303,7 @@ namespace EngineTests.ServiceTests
             var endPoint = new Position(6, 2);
             var heading = 18;
 
-            var result = vectorCalculatorService.CollectCollisionDetectionPointsAlongPath(startPosition, endPoint, heading);
+            List<Position> result = vectorCalculatorService.CollectCollisionDetectionPointsAlongPath(startPosition, endPoint, heading);
 
             Assert.Contains(new Position(4, 1), result);
             Assert.Contains(new Position(5, 2), result);

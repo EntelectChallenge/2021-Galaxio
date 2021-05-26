@@ -124,7 +124,7 @@ namespace EngineTests.ServiceTests
                 WorldStateService.ApplyAfterTickStateChanges();
             }
 
-            Assert.Less(objects.Count(a => a.GameObjectType == GameObjectType.Food ), countBefore);
+            Assert.Less(objects.Count(a => a.GameObjectType == GameObjectType.Food), countBefore);
         }
 
         [Test]
@@ -160,7 +160,7 @@ namespace EngineTests.ServiceTests
             WorldStateService.GetState().World.CurrentTick = EngineConfigFake.Value.Torpedo.ChargeRate - 1;
             WorldStateService.ApplyAfterTickStateChanges();
 
-            var bots = WorldStateService.GetPlayerBots();
+            IList<BotObject> bots = WorldStateService.GetPlayerBots();
             Assert.AreEqual(1, bots.First().TorpedoSalvoCount);
         }
     }

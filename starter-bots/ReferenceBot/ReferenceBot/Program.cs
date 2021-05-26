@@ -99,7 +99,7 @@ namespace NETCoreBot
 
                         Thread.Sleep(1000);
                         Console.WriteLine($"Registering with the runner: {token}");
-                        connection.SendAsync("Register", token, "Reference_Bot");
+                        connection.SendAsync("Register", token, "ReferenceBot");
                     });
             while (connection.State == HubConnectionState.Connected)
             {

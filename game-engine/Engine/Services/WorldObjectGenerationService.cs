@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using Domain.Enums;
 using Domain.Models;
 using Engine.Interfaces;
 using Engine.Models;
-using Microsoft.Extensions.Options;
 
 namespace Engine.Services
 {
@@ -29,7 +27,7 @@ namespace Engine.Services
             var startFoodTraces = placedFood.Count;
 
             var superfoodChance = engineConfig.WorldFood.SuperfoodSpawnChance * 359;
-            
+
             for (var index = 0; index < startFoodTraces; index++)
             {
                 var placedFoodTracker = foodPerPlacedFood;
@@ -59,11 +57,11 @@ namespace Engine.Services
                     }
 
                     var foodPosition = vectorCalculatorService.GetPositionFrom(lastPlacedFood.Position, distance, heading);
-                    
+
                     if (placedSuperfoodTracker < superfoodAmount &&
-                        (heading <= superfoodChance  || 
-                         (180 - superfoodChance/2 <= heading  && heading <= 180 + superfoodChance/2)  ||
-                         359 - superfoodChance <= heading))
+                        (heading <= superfoodChance ||
+                            180 - superfoodChance / 2 <= heading && heading <= 180 + superfoodChance / 2 ||
+                            359 - superfoodChance <= heading))
                     {
                         var superfood = CreateSuperfoodObjectAtPosition(Guid.NewGuid(), foodPosition);
                         var isValid = CheckPlacementValidity(
@@ -76,7 +74,7 @@ namespace Engine.Services
                         if (!isValid)
                         {
                             placedFoodTracker++;
-                        } 
+                        }
                         else
                         {
                             gameObjects.Add(superfood);
@@ -192,7 +190,7 @@ namespace Engine.Services
             for (var i = 0; i < playerSeeds.Count; i++)
             {
                 var playerSeed = playerSeeds[i];
-                var startingPositions = GetPlayerStartingPositions();
+                List<Position> startingPositions = GetPlayerStartingPositions();
 
                 var startingFood = engineConfig.WorldFood.PlayerSafeFood;
                 for (var startFoodPlaced = 0; startFoodPlaced < startingFood; startFoodPlaced++)
@@ -211,6 +209,7 @@ namespace Engine.Services
                     {
                         playerSeed += 1;
                     }
+
                     var foodPosition = vectorCalculatorService.GetPositionFrom(startingPositions[i], distance, heading);
                     var food = CreateFoodObjectAtPosition(Guid.NewGuid(), foodPosition);
                     var isValid = CheckPlacementValidity(
@@ -274,7 +273,7 @@ namespace Engine.Services
 
         public GameObject CreateFoodObjectAtPosition(Guid id, Position position) =>
             CreateObjectAtPosition(id, position, GameObjectType.Food, engineConfig.WorldFood.FoodSize);
-        
+
         public GameObject CreateSuperfoodObjectAtPosition(Guid id, Position position) =>
             CreateObjectAtPosition(id, position, GameObjectType.Superfood, engineConfig.WorldFood.FoodSize);
 
@@ -336,7 +335,9 @@ namespace Engine.Services
             {
                 foreach (var gameObject in listOfObjectsInSquare)
                 {
-                    var objectSize = gameObject.GameObjectType == GameObjectType.Wormhole ? engineConfig.Wormholes.MaxSize : gameObject.Size;
+                    var objectSize = gameObject.GameObjectType == GameObjectType.Wormhole
+                        ? engineConfig.Wormholes.MaxSize
+                        : gameObject.Size;
                     var distanceBetween = vectorCalculatorService.GetDistanceBetween(referenceObject.Position, gameObject.Position);
                     if (distanceBetween < minDistance + objectSize)
                     {
@@ -405,7 +406,13 @@ namespace Engine.Services
                 config.GenerateCount);
             var result = new Tuple<List<GameObject>, int>(new List<GameObject>(), obstaclePositions.Item2);
             var maxCount = Math.Min(obstaclePositions.Item1.Count, config.MaxCount);
-            var startingPositions = GetPlayerStartingPositions().Select(p => new GameObject { Position = p }).ToList();
+            List<GameObject> startingPositions = GetPlayerStartingPositions()
+                .Select(
+                    p => new GameObject
+                    {
+                        Position = p
+                    })
+                .ToList();
 
             /*
              These item counts are merely the total number of obstacle nodes that have been generated, which will most likely not be a set amount.
@@ -472,7 +479,11 @@ namespace Engine.Services
             {
                 /* Get the size of each node as the first character of the previous nodes x and y coordinates combined. */
                 var s = Convert.ToInt32(
-                    Convert.ToDecimal(Math.Abs(xs).ToString(CultureInfo.InvariantCulture)[0] + "" + Math.Abs(ys).ToString(CultureInfo.InvariantCulture)[0]) * config.NodeSizeMultiplier);
+                    Convert.ToDecimal(
+                        Math.Abs(xs).ToString(CultureInfo.InvariantCulture)[0] +
+                        "" +
+                        Math.Abs(ys).ToString(CultureInfo.InvariantCulture)[0]) *
+                    config.NodeSizeMultiplier);
 
                 /* Calculate random seeded value for x */
                 xs = xs * multiplier % modular + constX;
@@ -480,7 +491,7 @@ namespace Engine.Services
                 /* Calculate random seeded value for y */
                 ys = ys * multiplier % modular + constY;
 
-                SetPositionWithMultiplier(xs, ys, quadPosIndicator, out int x, out int y);
+                SetPositionWithMultiplier(xs, ys, quadPosIndicator, out var x, out var y);
 
                 SetQuadPosIndicator(ref quadPosIndicator);
 
@@ -531,10 +542,7 @@ namespace Engine.Services
             for (var playerNumber = 0; playerNumber < engineConfig.BotCount; playerNumber++)
             {
                 startingPositions.Add(
-                    vectorCalculatorService.GetNewPlayerStartingPosition(
-                        playerNumber,
-                        engineConfig.BotCount,
-                        engineConfig.StartRadius));
+                    vectorCalculatorService.GetNewPlayerStartingPosition(playerNumber, engineConfig.BotCount, engineConfig.StartRadius));
             }
 
             return startingPositions;
@@ -545,7 +553,12 @@ namespace Engine.Services
             quadPosIndicator = quadPosIndicator == 4 ? 1 : quadPosIndicator + 1;
         }
 
-        private void SetPositionWithMultiplier(decimal xValue, decimal yValue, int quadPosIndicator, out int xResult, out int yResult)
+        private void SetPositionWithMultiplier(
+            decimal xValue,
+            decimal yValue,
+            int quadPosIndicator,
+            out int xResult,
+            out int yResult)
         {
             xResult = Convert.ToInt32((quadPosIndicator < 3 ? -1 : 1) * xValue);
             yResult = Convert.ToInt32((quadPosIndicator > 3 || quadPosIndicator < 2 ? -1 : 1) * yValue);

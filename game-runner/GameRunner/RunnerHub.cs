@@ -54,7 +54,7 @@ namespace GameRunner
         /// <returns></returns>
         public override Task OnDisconnectedAsync(Exception exception)
         {
-            Logger.LogDebug("DisconnectEvent", exception.Message);
+            Logger.LogDebug("DisconnectEvent", exception?.Message);
             runnerStateService.DeregisterBot(Context.ConnectionId);
             Groups.RemoveFromGroupAsync(Context.ConnectionId, "players");
 

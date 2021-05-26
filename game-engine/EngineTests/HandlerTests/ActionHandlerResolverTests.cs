@@ -10,7 +10,7 @@ using NUnit.Framework;
 namespace EngineTests.HandlerTests
 {
     [TestFixture]
-    public class ActionHandlerResolverTests: TestBase
+    public class ActionHandlerResolverTests : TestBase
     {
         private ActionHandlerResolver actionHandlerResolver;
         private ForwardActionHandler forwardActionHandler;
@@ -22,7 +22,13 @@ namespace EngineTests.HandlerTests
             base.Setup();
             forwardActionHandler = new ForwardActionHandler();
             noOpActionHandler = new NoOpActionHandler();
-            actionHandlerResolver = new ActionHandlerResolver(new List<IActionHandler>{ forwardActionHandler, new StopActionHandler(), noOpActionHandler});
+            actionHandlerResolver = new ActionHandlerResolver(
+                new List<IActionHandler>
+                {
+                    forwardActionHandler,
+                    new StopActionHandler(),
+                    noOpActionHandler
+                });
         }
 
         [Test]
@@ -40,7 +46,7 @@ namespace EngineTests.HandlerTests
         {
             var action = new PlayerAction
             {
-                Action = (PlayerActions)9999,
+                Action = (PlayerActions) 9999,
                 Heading = 0,
                 PlayerId = Guid.NewGuid()
             };

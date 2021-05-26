@@ -96,8 +96,7 @@ namespace EngineTests.HandlerTests
             Assert.IsInstanceOf<AsteroidFieldCollisionHandler>(handler);
             Assert.True(handler.IsApplicable(asteroidField, bot));
         }
-        
-        
+
         [Test]
         public void GivenBotAndSuperfood_WhenCollision_ResolvesSuperfoodCollisionHandler()
         {

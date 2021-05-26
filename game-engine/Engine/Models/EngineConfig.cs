@@ -81,7 +81,6 @@ namespace Engine.Models
         public decimal SuperfoodSpawnChance { get; set; }
         public int SuperfoodEffectDuration { get; set; }
         public int MaxSuperfoodCount { get; set; }
-
     }
 
     public class AfterburnerConfig
