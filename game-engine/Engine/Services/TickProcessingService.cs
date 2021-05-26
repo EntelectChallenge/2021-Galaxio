@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Domain.Enums;
 using Domain.Models;
+using Domain.Services;
 using Engine.Handlers.Interfaces;
 using Engine.Interfaces;
 using Engine.Models;
@@ -17,6 +14,7 @@ namespace Engine.Services
         private readonly IWorldStateService worldStateService;
         private readonly ICollisionHandlerResolver collisionHandlerResolver;
         private readonly ICollisionService collisionService;
+        private StopWatchLogger stoplog;
 
         public TickProcessingService(
             ICollisionHandlerResolver collisionHandlerResolver,
@@ -28,81 +26,91 @@ namespace Engine.Services
             this.vectorCalculatorService = vectorCalculatorService;
             this.worldStateService = worldStateService;
             this.collisionService = collisionService;
+            stoplog = new StopWatchLogger();
         }
 
-        public void SimulateTick(IList<BotObject> bots)
+        public void SimulateTick()
         {
+            Logger.LogDebug("TPS", "Start of tick");
             if (worldStateService.GetPlayerCount() <= 1)
             {
                 return;
             }
 
-            var consumedBots = new List<BotObject>();
+            List<MovableGameObject> movingObjects = worldStateService.GetMovableObjects();
+
+            var consumedItems = new List<MovableGameObject>();
             var simulationStep = 0;
             /*
              * Determine the endpoint of the travel path of the bot
              * Collect their collision points along that path
              */
-            List<BotPath> botPaths = (from bot in bots
-                where bot.IsMoving
-                let endpoint = vectorCalculatorService.GetPointFrom(bot.Position, bot.Speed, bot.CurrentHeading)
-                select new BotPath
+            List<MovementPath> movementPaths = (from movableGameObject in movingObjects
+                where movableGameObject.IsMoving
+                let endpoint = vectorCalculatorService.GetPointFrom(
+                    movableGameObject.Position,
+                    movableGameObject.Speed,
+                    movableGameObject.CurrentHeading)
+                select new MovementPath
                 {
-                    Bot = bot,
+                    Mover = movableGameObject,
                     MovementEndpoint = endpoint,
-                    MovementStartPoint = bot.Position,
-                    CollisionDetectionPoints =
-                        vectorCalculatorService.CollectCollisionDetectionPointsAlongPath(bot.Position, endpoint, bot.CurrentHeading)
+                    MovementStartPoint = movableGameObject.Position,
+                    CollisionDetectionPoints = vectorCalculatorService.CollectCollisionDetectionPointsAlongPath(
+                        movableGameObject.Position,
+                        endpoint,
+                        movableGameObject.CurrentHeading)
                 }).ToList();
 
-            while (botPaths.Any())
+            while (movementPaths.Any())
             {
                 /*
                  * Move all bots to their next collision detection point this cycle
                  */
-                ApplyNextCollisionPoint(botPaths, simulationStep);
+                ApplyNextCollisionPoint(movementPaths, simulationStep);
 
                 /*
                  * Compute collisions for all bots and apply their effects
                  */
-                ApplyCollisionsAtCollisionPoint(botPaths, consumedBots);
+                ApplyCollisionsAtCollisionPoint(movementPaths, consumedItems);
 
                 /*
                  * Remove all consumed bots, and any points that have completed their travel.
                  * Continue until all bots are either consumed in this tick, or they have fully travelled their path
                  */
-                botPaths = botPaths.Where(
-                        botMovement => !consumedBots.Contains(botMovement.Bot) && botMovement.CollisionDetectionPoints.Any())
+                movementPaths = movementPaths.Where(
+                        movementPath => !consumedItems.Contains(movementPath.Mover) && movementPath.CollisionDetectionPoints.Any())
                     .ToList();
+
                 simulationStep++;
             }
         }
 
-        private void ApplyNextCollisionPoint(List<BotPath> botPaths, int simulationStep)
+        private void ApplyNextCollisionPoint(List<MovementPath> movememntPaths, int simulationStep)
         {
-            foreach (var botPath in botPaths)
+            foreach (var movementPath in movememntPaths)
             {
-                ValidateOutstandingPath(botPath, simulationStep);
-                var possiblePosition = botPath.CollisionDetectionPoints.FirstOrDefault();
+                ValidateOutstandingPath(movementPath, simulationStep);
+                var possiblePosition = movementPath.CollisionDetectionPoints.FirstOrDefault();
                 if (possiblePosition != null)
                 {
-                    botPath.Moved = true;
-                    botPath.Bot.Position = possiblePosition;
-                    botPath.CollisionDetectionPoints.RemoveAt(0);
+                    movementPath.Moved = true;
+                    movementPath.Mover.Position = possiblePosition;
+                    movementPath.CollisionDetectionPoints.RemoveAt(0);
                 }
                 else
                 {
-                    botPath.Moved = false;
+                    movementPath.Moved = false;
                 }
             }
         }
 
-        private int ValidateOutstandingPath(BotPath botPath, int simulationStep)
+        private int ValidateOutstandingPath(MovementPath movementPath, int simulationStep)
         {
             var invalidCount = 0;
-            var distanceToTravel = botPath.Bot.Speed;
+            var distanceToTravel = movementPath.Mover.Speed;
 
-            if (botPath.HasCollided)
+            if (movementPath.HasCollided)
             {
                 distanceToTravel -= simulationStep;
                 if (distanceToTravel < 0)
@@ -110,33 +118,39 @@ namespace Engine.Services
                     distanceToTravel = 0;
                 }
 
-                var endpoint = vectorCalculatorService.GetPointFrom(botPath.Bot.Position, distanceToTravel, botPath.Bot.CurrentHeading);
+                var endpoint = vectorCalculatorService.GetPointFrom(
+                    movementPath.Mover.Position,
+                    distanceToTravel,
+                    movementPath.Mover.CurrentHeading);
 
-                botPath.CollisionDetectionPoints = vectorCalculatorService.CollectCollisionDetectionPointsAlongPath(
-                    botPath.Bot.Position,
+                movementPath.CollisionDetectionPoints = vectorCalculatorService.CollectCollisionDetectionPointsAlongPath(
+                    movementPath.Mover.Position,
                     endpoint,
-                    botPath.Bot.CurrentHeading);
+                    movementPath.Mover.CurrentHeading);
 
                 return invalidCount;
             }
 
             var finalPointIsValid = false;
-            var distanceFromStart = vectorCalculatorService.GetDistanceBetween(botPath.MovementStartPoint, botPath.Bot.Position);
+            var distanceFromStart = vectorCalculatorService.GetDistanceBetween(
+                movementPath.MovementStartPoint,
+                movementPath.Mover.Position);
 
             while (!finalPointIsValid)
             {
-                if (!botPath.CollisionDetectionPoints.Any())
+                if (!movementPath.CollisionDetectionPoints.Any())
                 {
                     finalPointIsValid = true;
                     break;
                 }
+
                 var distanceToEndpoint = vectorCalculatorService.GetDistanceBetween(
-                    botPath.Bot.Position,
-                    botPath.CollisionDetectionPoints.Last());
+                    movementPath.Mover.Position,
+                    movementPath.CollisionDetectionPoints.Last());
                 if (distanceFromStart + distanceToEndpoint > distanceToTravel)
                 {
                     invalidCount++;
-                    botPath.CollisionDetectionPoints.RemoveAt(botPath.CollisionDetectionPoints.Count - 1);
+                    movementPath.CollisionDetectionPoints.RemoveAt(movementPath.CollisionDetectionPoints.Count - 1);
                 }
                 else
                 {
@@ -147,21 +161,21 @@ namespace Engine.Services
             return invalidCount;
         }
 
-        private void ApplyCollisionsAtCollisionPoint(List<BotPath> botsWithMovementPoints, List<BotObject> consumedBots)
+        private void ApplyCollisionsAtCollisionPoint(List<MovementPath> movementPaths, List<MovableGameObject> consumedBots)
         {
-            foreach (var botLine in botsWithMovementPoints)
+            foreach (var movementPath in movementPaths)
             {
-                if (!botLine.Moved)
+                if (!movementPath.Moved)
                 {
                     continue;
                 }
 
-                var bot = botLine.Bot;
+                var bot = movementPath.Mover;
                 List<GameObject> collisions = collisionService.GetCollisions(bot);
                 var botIsAlive = collisions.Select(
                         gameObject =>
                         {
-                            botLine.HasCollided = true;
+                            movementPath.HasCollided = true;
                             var handler = collisionHandlerResolver.ResolveHandler(gameObject, bot);
                             return handler.ResolveCollision(gameObject, bot);
                         })

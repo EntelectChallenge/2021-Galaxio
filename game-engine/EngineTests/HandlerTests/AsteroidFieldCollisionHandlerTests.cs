@@ -56,8 +56,7 @@ namespace EngineTests.HandlerTests
             Assert.True(botAfter.Effects == Effects.AsteroidField);
             Assert.AreEqual(19, bot.Speed);
         }
-        
-                
+
         [Test]
         public void GivenBot_WhenUpdateBotSpeedWithBigBot_ReturnOne()
         {
@@ -73,10 +72,10 @@ namespace EngineTests.HandlerTests
 
             bot.Size = 340;
             bot.Speed = 1;
-            
+
             var handler = collisionHandlerResolver.ResolveHandler(asteroidField, bot);
             handler.ResolveCollision(asteroidField, bot);
-            
+
             Assert.AreEqual(1, bot.Speed);
         }
     }

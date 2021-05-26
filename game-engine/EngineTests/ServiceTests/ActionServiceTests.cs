@@ -24,7 +24,8 @@ namespace EngineTests.ServiceTests
             {
                 new ForwardActionHandler(),
                 new StartAfterburnerActionHandler(WorldStateService, EngineConfigFake),
-                new StopAfterburnerActionHandler(WorldStateService)
+                new StopAfterburnerActionHandler(WorldStateService),
+                new StopActionHandler()
             };
             actionHandlerResolver = new ActionHandlerResolver(actionHandlers);
             actionService = new ActionService(WorldStateService, actionHandlerResolver);
@@ -109,7 +110,7 @@ namespace EngineTests.ServiceTests
 
             Assert.DoesNotThrow(() => actionService.ApplyActionToBot(bot));
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
-            
+
             var secondAction = FakeGameObjectProvider.GetStopAfterburnerPlayerAction(bot.Id);
             bot.PendingActions = new List<PlayerAction>
             {

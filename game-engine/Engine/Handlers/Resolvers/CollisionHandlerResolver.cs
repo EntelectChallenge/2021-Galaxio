@@ -14,7 +14,7 @@ namespace Engine.Handlers.Resolvers
             this.collisionHandlers = collisionHandlers;
         }
 
-        public ICollisionHandler ResolveHandler(GameObject gameObject, BotObject bot)
+        public ICollisionHandler ResolveHandler(GameObject gameObject, MovableGameObject bot)
         {
             return collisionHandlers.First(handler => handler.IsApplicable(gameObject, bot));
         }

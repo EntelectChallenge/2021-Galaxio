@@ -7,7 +7,7 @@ stages:
 # ==============================| VARIABLES |============================== #
 variables:
   # REFERENCE BOT VERSION
-  REFERENCE_BOT_VERSION: "2021.0.0"
+  REFERENCE_BOT_VERSION: "2021.2.1"
 
   # STARTER BOT VERSIONS
   DOT_NET_VERSION: "3.1"
@@ -76,9 +76,10 @@ deploy:reference:
     - export AWS_SECURITY_TOKEN=${KST[2]}
   script:
     - cd ./ReferenceBot
-    - docker build -t $DOCKER_REGISTRY/$APP_NAME:$REFERENCE_BOT_VERSION .
+    - docker build -t $DOCKER_REGISTRY/$APP_NAME:$REFERENCE_BOT_VERSION -t $DOCKER_REGISTRY/$APP_NAME:latest .
     - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
     - docker push $DOCKER_REGISTRY/$APP_NAME:$REFERENCE_BOT_VERSION
+    - docker push $DOCKER_REGISTRY/$APP_NAME:latest
 
 # ==============================| STARTER BOTS |============================== #
 

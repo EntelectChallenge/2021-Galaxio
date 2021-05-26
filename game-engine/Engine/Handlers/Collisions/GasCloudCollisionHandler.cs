@@ -4,7 +4,6 @@ using Engine.Handlers.Interfaces;
 using Engine.Interfaces;
 using Engine.Models;
 using Engine.Services;
-using Microsoft.Extensions.Options;
 
 namespace Engine.Handlers.Collisions
 {
@@ -19,33 +18,54 @@ namespace Engine.Handlers.Collisions
             engineConfig = engineConfigOptions.Value;
         }
 
-        public bool IsApplicable(GameObject gameObject, BotObject bot) => gameObject.GameObjectType == GameObjectType.GasCloud;
+        public bool IsApplicable(GameObject gameObject, MovableGameObject mover) => gameObject.GameObjectType == GameObjectType.GasCloud;
 
-        public bool ResolveCollision(GameObject gameObject, BotObject bot)
+        public bool ResolveCollision(GameObject go, MovableGameObject mover)
         {
             var currentEffect = new ActiveEffect
             {
-                Bot = bot,
+                Bot = mover,
                 Effect = Effects.GasCloud
             };
 
-            /* If the effect is not registered, add it to the list. */
-            if (worldStateService.GetActiveEffectByType(bot.Id, Effects.GasCloud) != default)
+            if (mover is BotObject bot)
             {
+                if (worldStateService.GetActiveEffectByType(bot.Id, Effects.GasCloud) != default)
+                {
+                    if (bot.Size < engineConfig.MinimumPlayerSize)
+                    {
+                        worldStateService.RemoveGameObjectById(bot.Id);
+                    }
+
+                    return bot.Size >= engineConfig.MinimumPlayerSize;
+                }
+
+                worldStateService.AddActiveEffect(currentEffect);
+                bot.Size -= engineConfig.GasClouds.AffectPerTick;
                 if (bot.Size < engineConfig.MinimumPlayerSize)
                 {
                     worldStateService.RemoveGameObjectById(bot.Id);
                 }
+
                 return bot.Size >= engineConfig.MinimumPlayerSize;
             }
 
-            worldStateService.AddActiveEffect(currentEffect);
-            bot.Size -= engineConfig.GasClouds.AffectPerTick;
-            if (bot.Size < engineConfig.MinimumPlayerSize)
+            var moverStartingSize = mover.Size;
+            mover.Size -= go.Size;
+            go.Size -= moverStartingSize;
+            if (go.Size <= 0)
             {
-                worldStateService.RemoveGameObjectById(bot.Id);
+                go.Size = 0;
+                worldStateService.RemoveGameObjectById(go.Id);
             }
-            return bot.Size >= engineConfig.MinimumPlayerSize;
+
+            if (mover.Size <= 0)
+            {
+                mover.Size = 0;
+                worldStateService.RemoveGameObjectById(mover.Id);
+            }
+
+            return mover.Size > 0;
         }
     }
 }

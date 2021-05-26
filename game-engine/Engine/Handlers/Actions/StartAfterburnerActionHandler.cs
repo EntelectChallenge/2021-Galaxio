@@ -4,7 +4,6 @@ using Engine.Handlers.Interfaces;
 using Engine.Interfaces;
 using Engine.Models;
 using Engine.Services;
-using Microsoft.Extensions.Options;
 
 namespace Engine.Handlers.Actions
 {
@@ -19,7 +18,7 @@ namespace Engine.Handlers.Actions
             this.engineConfig = engineConfig.Value;
         }
 
-        public bool IsApplicable(PlayerAction botCurrentAction) => botCurrentAction?.Action == PlayerActions.StartAfterburner;
+        public bool IsApplicable(PlayerAction action) => action?.Action == PlayerActions.StartAfterburner;
 
         public void ProcessAction(BotObject bot)
         {

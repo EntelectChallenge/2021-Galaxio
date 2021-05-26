@@ -54,8 +54,10 @@ namespace GameRunner
         /// <returns></returns>
         public override Task OnDisconnectedAsync(Exception exception)
         {
+            Logger.LogDebug("DisconnectEvent", exception?.Message);
             runnerStateService.DeregisterBot(Context.ConnectionId);
             Groups.RemoveFromGroupAsync(Context.ConnectionId, "players");
+
             var result = base.OnDisconnectedAsync(exception);
             return result;
         }
@@ -184,6 +186,7 @@ namespace GameRunner
             {
                 await cloudIntegrationService.Announce(CloudCallbackType.Ready);
             }
+
             await Groups.AddToGroupAsync(Context.ConnectionId, GameGroups.Components);
         }
 
@@ -225,7 +228,7 @@ namespace GameRunner
         #endregion
 
         #region Bot endpoints
-        
+
         /// <summary>
         ///     Allows a bot to register for a game with their given token
         /// </summary>
@@ -283,9 +286,11 @@ namespace GameRunner
 
         private async Task CheckForGameStartConditions()
         {
-            Logger.LogInfo("RunnerHub", $"Connected Clients: {runnerStateService.TotalConnectedClients}, Target: {runnerConfig.BotCount}");
+            Logger.LogInfo(
+                "RunnerHub",
+                $"Total Clients that have Connected: {runnerStateService.TotalConnectedClients}, Active Connected Clients: {runnerStateService.TotalConnectedClients}, Target: {runnerConfig.BotCount}");
 
-            if (runnerStateService.TotalConnectedClients != runnerConfig.BotCount)
+            if (runnerStateService.TotalConnections != runnerConfig.BotCount)
             {
                 return;
             }

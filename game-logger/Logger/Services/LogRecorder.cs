@@ -40,6 +40,8 @@ namespace Logger.Services
         private readonly bool pushLogsToS3;
         private bool running = false;
         private string runnerUrl;
+        private bool logsSaving = false;
+        private bool logsSaved = false;
 
         public LogRecorder(IOptions<LoggerConfig> loggerConfig)
         {
@@ -213,6 +215,11 @@ namespace Logger.Services
 
         private async Task OnSaveLogs(GameCompletePayload gameCompletePayload)
         {
+            if (logsSaved || logsSaving)
+            {
+                return;
+            }
+            logsSaving = true;
             LogWriter.LogInfo("Logger", "Game Complete. Saving Logs...");
             var finalLogDir = logDirectory;
 
@@ -285,6 +292,7 @@ namespace Logger.Services
             await connection.InvokeAsync("GameLoggingComplete");
 
             waitingForSideCar = false;
+            logsSaved = true;
         }
 
         private string WriteFileWithSerialisation(

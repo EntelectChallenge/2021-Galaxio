@@ -55,6 +55,20 @@ namespace EngineTests.Fakes
             return bot;
         }
 
+        public GameObject GetSuperfoodAt(Position position)
+        {
+            var superfood = new GameObject
+            {
+                Id = Guid.NewGuid(),
+                Size = 1,
+                Position = position,
+                Speed = 0,
+                GameObjectType = GameObjectType.Superfood
+            };
+            worldStateService.AddGameObject(superfood);
+            return superfood;
+        }
+
         public GameObject GetSmallBotAt(Position position)
         {
             var bot = new BotObject

@@ -14,21 +14,44 @@ namespace Engine.Handlers.Collisions
             this.worldStateService = worldStateService;
         }
 
-        public bool IsApplicable(GameObject gameObject, BotObject bot) => gameObject.GameObjectType == GameObjectType.AsteroidField;
+        public bool IsApplicable(GameObject gameObject, MovableGameObject mover) =>
+            gameObject.GameObjectType == GameObjectType.AsteroidField;
 
-        public bool ResolveCollision(GameObject gameObject, BotObject bot)
+        public bool ResolveCollision(GameObject go, MovableGameObject mover)
         {
             var currentEffect = new ActiveEffect
             {
-                Bot = bot,
+                Bot = mover,
                 Effect = Effects.AsteroidField
             };
 
-            /* If the effect is not registered, add it to the list. */
-            if (worldStateService.GetActiveEffectByType(bot.Id, Effects.AsteroidField) == default)
+            if (mover is BotObject bot)
             {
-                worldStateService.AddActiveEffect(currentEffect);
-                worldStateService.UpdateBotSpeed(bot);
+                /* If the effect is not registered, add it to the list. */
+                if (worldStateService.GetActiveEffectByType(mover.Id, Effects.AsteroidField) == default)
+                {
+                    worldStateService.AddActiveEffect(currentEffect);
+                    worldStateService.UpdateBotSpeed(mover);
+                }
+            }
+            else
+            {
+                var moverStartingSize = mover.Size;
+                mover.Size -= go.Size;
+                go.Size -= moverStartingSize;
+                if (go.Size <= 0)
+                {
+                    go.Size = 0;
+                    worldStateService.RemoveGameObjectById(go.Id);
+                }
+
+                if (mover.Size <= 0)
+                {
+                    mover.Size = 0;
+                    worldStateService.RemoveGameObjectById(mover.Id);
+                }
+
+                return mover.Size > 0;
             }
 
             return true;

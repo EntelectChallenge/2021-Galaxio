@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
 using Domain.Models;
 using Engine.Handlers.Collisions;
 using Engine.Handlers.Interfaces;
@@ -51,12 +51,13 @@ namespace EngineTests.ServiceTests
             vectorCalculatorServiceMock
                 .Setup(vcs => vcs.CollectCollisionDetectionPointsAlongPath(It.IsAny<Position>(), It.IsAny<Position>(), It.IsAny<int>()))
                 .Returns(
-                    new List<Position>{
+                    new List<Position>
+                    {
                         new Position(0, 0),
                         new Position(1, 1),
                         new Position(2, 2)
                     });
-            Assert.DoesNotThrow(() => tickProcessingService.SimulateTick(WorldStateService.GetPlayerBots()));
+            Assert.DoesNotThrow(() => tickProcessingService.SimulateTick());
         }
 
         [Test]
@@ -75,11 +76,11 @@ namespace EngineTests.ServiceTests
                 WorldStateService,
                 collisionService);
 
-            Assert.DoesNotThrow(() => tickProcessingService.SimulateTick(WorldStateService.GetPlayerBots()));
+            Assert.DoesNotThrow(() => tickProcessingService.SimulateTick());
 
             Assert.AreEqual(11, bot.Size);
             Assert.AreEqual(19, bot.Speed);
-            Assert.AreEqual(new Position(0,19),bot.Position);
+            Assert.AreEqual(new Position(0, 19), bot.Position);
         }
 
         [Test]
@@ -90,9 +91,93 @@ namespace EngineTests.ServiceTests
             bot1.IsMoving = true;
             bot2.IsMoving = true;
 
-            Assert.DoesNotThrow(() => tickProcessingService.SimulateTick(WorldStateService.GetPlayerBots()));
+            Assert.DoesNotThrow(() => tickProcessingService.SimulateTick());
             Assert.False(WorldStateService.GameObjectIsInWorldState(bot1.Id));
             Assert.True(WorldStateService.GameObjectIsInWorldState(bot2.Id));
+        }
+
+        [Test]
+        public void GivenTorpedo_WhenProcessTick_ThenTorpedoMoves()
+        {
+            SetupFakeWorld(true, false);
+            var bot = FakeGameObjectProvider.GetBotWithActions();
+            bot.CurrentHeading = 90;
+            bot.Speed = 20;
+            bot.IsMoving = true;
+
+            var torpedoPosition = VectorCalculatorService.GetPositionFrom(
+                bot.Position,
+                bot.Size + EngineConfigFake.Value.Torpedo.Size + 1,
+                bot.CurrentAction.Heading);
+            var torpedoSalvo = new TorpedoGameObject
+            {
+                Id = Guid.NewGuid(),
+                Position = torpedoPosition,
+                Size = EngineConfigFake.Value.Torpedo.Size,
+                Speed = EngineConfigFake.Value.Torpedo.Speed,
+                CurrentHeading = 45,
+                FiringPlayerId = bot.Id,
+                IsMoving = true
+            };
+            WorldStateService.AddGameObject(torpedoSalvo);
+
+            tickProcessingService = new TickProcessingService(
+                collisionHandlerResolver,
+                VectorCalculatorService,
+                WorldStateService,
+                collisionService);
+
+            Assert.DoesNotThrow(() => tickProcessingService.SimulateTick());
+
+            Assert.AreNotEqual(torpedoPosition, torpedoSalvo.Position);
+        }
+
+        [Test]
+        public void GivenTorpedo_WhenProcessMultipleTicks_ThenTorpedoMoves()
+        {
+            SetupFakeWorld(true, false);
+            var bot = FakeGameObjectProvider.GetBotWithActions();
+            bot.CurrentHeading = 90;
+            bot.Speed = 20;
+            bot.IsMoving = true;
+
+            var torpedoPosition = VectorCalculatorService.GetPositionFrom(
+                bot.Position,
+                bot.Size + EngineConfigFake.Value.Torpedo.Size + 1,
+                bot.CurrentAction.Heading);
+            var torpedoSalvo = new TorpedoGameObject
+            {
+                Id = Guid.NewGuid(),
+                Position = torpedoPosition,
+                Size = EngineConfigFake.Value.Torpedo.Size,
+                Speed = EngineConfigFake.Value.Torpedo.Speed,
+                CurrentHeading = 45,
+                FiringPlayerId = bot.Id,
+                IsMoving = true
+            };
+            WorldStateService.AddGameObject(torpedoSalvo);
+
+            tickProcessingService = new TickProcessingService(
+                collisionHandlerResolver,
+                VectorCalculatorService,
+                WorldStateService,
+                collisionService);
+
+            Assert.DoesNotThrow(() => tickProcessingService.SimulateTick());
+
+            Assert.AreNotEqual(torpedoPosition, torpedoSalvo.Position);
+
+            var lastPosition = new Position(torpedoSalvo.Position);
+
+            tickProcessingService = new TickProcessingService(
+                collisionHandlerResolver,
+                VectorCalculatorService,
+                WorldStateService,
+                collisionService);
+
+            Assert.DoesNotThrow(() => tickProcessingService.SimulateTick());
+
+            Assert.AreNotEqual(lastPosition, torpedoSalvo.Position);
         }
     }
 }

@@ -12,12 +12,15 @@ In a match your **1** ship will compete against a **variable** amount of other s
         - [Boundary](#boundary)
     - [Objects](#objects)
         - [Food](#food)
+        - [Super Food](#super-food)
         - [Wormholes](#wormholes)
         - [Gas Clouds](#gas-clouds)
         - [Asteroid Fields](#asteroid-fields)
+        - [Torpedo Salvo](#torpedo-salvo)
     - [The Ship](#the-ship)
         - [Speed](#speed)
         - [Afterburner](#afterburner)
+        - [Dark Matter Torpedoes](#dark-matter-torpedoes)
     - [Collisions](#collisions)
         - [Ship to ship collisions](#ship-to-ship-collisions)
         - [Food collisions](#food-collisions)
@@ -30,6 +33,7 @@ In a match your **1** ship will compete against a **variable** amount of other s
         - [Command: STOP](#command:-STOP)
         - [Command: START_AFTERBURNER](#command:-START_AFTERBURNER)
         - [Command: STOP_AFTERBURNER](#command:-STOP_AFTERBURNER)
+        - [Command: FIRE_TORPEDOES](#command:-FIRE_TORPEDOES)
     - [Endgame](#endgame)
     - [Scoring](#scoring)
     - [The Math](#the-math)
@@ -62,6 +66,7 @@ The size of the map will shrink each game tick. Objects that fall outside of the
 ## Objects
 
 All objects are represented by a circular shape and has a centre point with X and Y coordinates and a radius that defines it size and shape.
+
 ### Food
 
 The map will be scattered with food objects of size 3 which can be consumed by players.
@@ -69,6 +74,21 @@ The map will be scattered with food objects of size 3 which can be consumed by p
 * Food will not move.
 * Food will be removed if it falls outside of the map.
 * If a player collides with food it will consume the food in it's entirety and the player will increase by the same size as the food.
+
+### Super Food
+When food spawns on the map, it has a percentage chance to spawn as super food.
+
+Super food increases your "absorption rate" as a config driven value currently set to 2, meaning you consume 2 times the size of other standard food you consume. This ability stays for a set number of ticks, currently 5.
+
+The following values configure this feature:
+* **ScoreRates (Item 6):** chance for super food to spawn.
+* **superfoodConsumptionRate:** consumption multiplier for super food.
+* **superfoodEffectDuration:** the amount of ticks that the effect lasts.
+* **maxSuperfoodCount:** max amount of super food that can be spawned on a map.
+
+
+**Example**:
+You have bot size 10 which collides with a super food and increases by 3 to 13, in the next tick it collides with nothing. In the second tick it collides with standard food, the bot's size now increases by 6 to 19. As that was the second tick with consumption rate active the effect now expires.
 
 ### Wormholes
 
@@ -87,6 +107,31 @@ Gas clouds will be scattered around the map in groupings of smaller clouds. Ship
 ### Asteroid Fields
 
 Asteroid fields will be scattered around the map in groupings of smaller clouds. Ships can traverse through asteroid fields, however once a ship is colliding with a asteroid cloud its speed will be reduced by a factor of 2. Once a ship is no longer colliding with the asteroid field the effect will be removed.
+
+### Torpedo Salvo
+
+When these appear in the map, they have been launched from another ship! Watch out for their path as collisions with them will deduct their current size from your size. They also collide with everything on the map, causing damage to anything in their path!
+
+* They travel in a straight-line trajectory, in the given heading represented in their state
+* They travel at a speed of 60
+* They begin at a size of 10
+* They continue on so long as they have any size left
+* Size is deducted from them when they collide with anything except wormholes, as well as from whatever they collide with
+    * The size they deduct from what they collide with is equal to the smaller object's size involved in the collision
+    * Examples:
+        * If the salvo collides with a food, and food is size 3, and the salvo is size 10, at the end of the collision the food will be size 0 and removed, and the salvo will be size 7
+        * If the salvo collides with a player of size 20, and the salvo is size 10, the salvo will be size 0 and removed, and the player will be size 10. The player who fired the salvo will gain 10 size also.
+        * If two salvos collide, one of size 5 and one of size 10, the one of size 5 will be size 0 and removed, and the other will be of size 5 and continue on its path.
+* If they collide with a bot, they steal the size they consume and give it back to the original bot that fired them
+* They will be immediately removed from the world as soon as they exit the world bounds.
+
+**Wormhole Collisions**
+
+* Torpedo salvos interact and traverse with wormholes the same way players do
+* They will exit the wormhole at the opposite end and continue along their path
+* They consume energy from the wormhole traversal, in the same manner players do
+
+---
 
 ## The Ship
 
@@ -118,6 +163,18 @@ With the result being rounded to ceiling and with a minimum of 1.
 The afterburner will increase your ship's speed by a factor of 2. However this will also start reducing the size of your ship by 1 per tick.
 
 * An active afterburner can cause self destruction if the ship's size becomes less than 5.
+
+### Dark Matter Torpedoes
+
+Your ship comes equipped with dark matter torpedos. These can be used to manipulate space around you, and lay down the charge to your enemies.
+
+Torpedoes that hit objects in the world will destroy those objects, and when they land on your enemies, you steal matter from them proportionally to the damage done to them. 
+
+* Your ship will receive 1 salvo charge every 10 ticks. 
+* Your ship can only carry a maximum of 5 salvo charges at a tick. 
+* Your ship can then trade a salvo charge for 5 size to fire a barrage of 10 torpedoes in your chosen direction.
+* Firing a salvo of torpedoes while your ship is less than size 10 can cause your ship to self destruct if it becomes less than size 10. 
+
 
 ## Collisions
 
@@ -299,6 +356,26 @@ Example Payload in JSON with types:
   "heading": 0 // int
 }
 ```
+
+### Command: FIRE_TORPEDOES
+
+```
+FIRE_TORPEDOES
+```
+
+This command consumes 1 salvo charge and 5 size to send out a salvo of torpedoes in the given heading
+
+Example Payload in JSON with types:
+```jsonc
+{
+  "playerId": "00000000-0000-0000-0000-000000000000", //string or GUID, not required
+  "action": 5, // int,
+  "heading": 75 // int
+}
+```
+
+***Note:** the state will reflect a single object of size 10 to represent your torpedo salvo*
+
 
 ## Endgame
 

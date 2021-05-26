@@ -7,5 +7,6 @@ namespace Domain.Models
         public List<PlayerAction> PendingActions { get; set; }
         public PlayerAction LastAction { get; set; }
         public PlayerAction CurrentAction { get; set; }
+        public int TorpedoSalvoCount { get; set; }
     }
 }

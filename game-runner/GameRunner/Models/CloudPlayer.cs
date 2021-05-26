@@ -7,5 +7,6 @@
         public int FinalScore { get; set; }
         public int Placement { get; set; }
         public int Seed { get; set; }
+        public int MatchPoints { get; set; }
     }
 }
