@@ -127,9 +127,11 @@ namespace EngineTests.ServiceTests
                 thirdAction
             };
 
-            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));;
+            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));
+            ;
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
-            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));;
+            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));
+            ;
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
 
             var activeEffect = WorldStateService.GetActiveEffectByType(bot.Id, Effects.Afterburner);
@@ -205,7 +207,8 @@ namespace EngineTests.ServiceTests
             var resultingDistanceTravelled = VectorCalculatorService.GetDistanceBetween(new Position(0, 0), bot.Position);
             var varianceBetweenExpectedAndActualEndpoint = VectorCalculatorService.GetDistanceBetween(bot.Position, expectedEndpoint);
 
-            var pathPoints = VectorCalculatorService.CollectCollisionDetectionPointsAlongPath(new Position(0, 0), new Position(6, 2), 23);
+            List<Position> pathPoints =
+                VectorCalculatorService.CollectCollisionDetectionPointsAlongPath(new Position(0, 0), new Position(6, 2), 23);
 
             Assert.AreEqual(6, expectedDistance);
 
@@ -234,24 +237,24 @@ namespace EngineTests.ServiceTests
             Assert.AreEqual(4, bot.Size);
             Assert.False(WorldStateService.GameObjectIsInWorldState(bot.Id));
         }
-        
+
         [Test]
         public void GivenBotAndSuperfood_WhenResolveCollision_ReturnBotWithActiveEffects()
         {
             SetupFakeWorld(true, false);
-            FakeGameObjectProvider.GetSuperfoodAt(new Position(8,0));
-            FakeGameObjectProvider.GetFoodAt(new Position(80,0));
+            FakeGameObjectProvider.GetSuperfoodAt(new Position(8, 0));
+            FakeGameObjectProvider.GetFoodAt(new Position(80, 0));
 
-            var bot = FakeGameObjectProvider.GetBotAt(new Position(0,0));
+            var bot = FakeGameObjectProvider.GetBotAt(new Position(0, 0));
             var firstAction = FakeGameObjectProvider.GetForwardPlayerAction(bot.Id);
 
             bot.PendingActions = new List<PlayerAction>
             {
-                firstAction,
+                firstAction
             };
 
-
-            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));;
+            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));
+            ;
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
 
             var activeEffect = WorldStateService.GetActiveEffectByType(bot.Id, Effects.Superfood);
@@ -262,21 +265,26 @@ namespace EngineTests.ServiceTests
             Assert.True(botAfter != default);
             Assert.True(botAfter.Effects == Effects.Superfood);
             Assert.AreEqual(11, bot.Size);
-            
-            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));;
+
+            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));
+            ;
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
-            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));;
+            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));
+            ;
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
-            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));;
+            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));
+            ;
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
-            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));;
+            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));
+            ;
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
-            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));;
+            Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));
+            ;
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
-            
+
             activeEffect = WorldStateService.GetActiveEffectByType(bot.Id, Effects.Superfood);
             botAfter = WorldStateService.GetState().PlayerGameObjects.Find(g => g.Id == bot.Id);
-            
+
             Assert.True(activeEffect == null);
             Assert.True(botAfter != default);
             Assert.AreEqual(13, bot.Size);

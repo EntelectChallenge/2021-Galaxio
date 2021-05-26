@@ -32,8 +32,7 @@ namespace EngineTests.ServiceTests
             collisionHandlers = new List<ICollisionHandler>
             {
                 new FoodCollisionHandler(WorldStateService, EngineConfigFake),
-                new PlayerCollisionHandler(WorldStateService, collisionService, EngineConfigFake,
-                    VectorCalculatorService),
+                new PlayerCollisionHandler(WorldStateService, collisionService, EngineConfigFake, VectorCalculatorService),
                 new WormholeCollisionHandler(WorldStateService, VectorCalculatorService, EngineConfigFake),
                 new GasCloudCollisionHandler(WorldStateService, EngineConfigFake),
                 new AsteroidFieldCollisionHandler(WorldStateService),
@@ -56,17 +55,16 @@ namespace EngineTests.ServiceTests
                 VectorCalculatorService,
                 WorldStateService,
                 collisionService);
-            engineService =
-                new EngineService(WorldStateService, actionService, EngineConfigFake, tickProcessingService);
+            engineService = new EngineService(WorldStateService, actionService, EngineConfigFake, tickProcessingService);
         }
 
         [Test]
         public void GivenTorpedoes_WhenHitFood_ThenSmallerAndTorpedoSmaller()
         {
-            SetupFakeWorld(true);
+            SetupFakeWorld();
             var food = FakeGameObjectProvider.GetFoodAt(new Position(0, 10));
 
-            var torpedo = new TorpedoGameObject()
+            var torpedo = new TorpedoGameObject
             {
                 Id = Guid.NewGuid(),
                 GameObjectType = GameObjectType.TorpedoSalvo,
@@ -92,9 +90,8 @@ namespace EngineTests.ServiceTests
             List<Tuple<GameObject, GameObject>> wormholes = state.WormholePairs;
             var wormhole = wormholes[0].Item1;
 
-            var startPosition = new Position(wormhole.Position.X + wormhole.Size + 5,
-                wormhole.Position.Y + wormhole.Size + 5);
-            var torpedo = new TorpedoGameObject()
+            var startPosition = new Position(wormhole.Position.X + wormhole.Size + 5, wormhole.Position.Y + wormhole.Size + 5);
+            var torpedo = new TorpedoGameObject
             {
                 Id = Guid.NewGuid(),
                 GameObjectType = GameObjectType.TorpedoSalvo,
@@ -114,10 +111,10 @@ namespace EngineTests.ServiceTests
         [Test]
         public void GivenTorpedoes_WhenHitSuperFood_ThenSmallerAndTorpedoSmaller()
         {
-            SetupFakeWorld(true);
+            SetupFakeWorld();
             var superFood = FakeGameObjectProvider.GetSuperfoodAt(new Position(0, 10));
 
-            var torpedo = new TorpedoGameObject()
+            var torpedo = new TorpedoGameObject
             {
                 Id = Guid.NewGuid(),
                 GameObjectType = GameObjectType.TorpedoSalvo,
@@ -126,7 +123,6 @@ namespace EngineTests.ServiceTests
                 Position = superFood.Position
             };
             WorldStateService.AddGameObject(torpedo);
-
 
             var handler = collisionHandlerResolver.ResolveHandler(superFood, torpedo);
             handler.ResolveCollision(superFood, torpedo);
@@ -138,11 +134,11 @@ namespace EngineTests.ServiceTests
         [Test]
         public void GivenTorpedoes_WhenHitGasCloud_ThenSmallerAndTorpedoSmaller()
         {
-            SetupFakeWorld(true);
+            SetupFakeWorld();
             List<GameObject> gasClouds = FakeGameObjectProvider.GetGasClouds();
             var gasCloud = gasClouds[0];
 
-            var torpedo = new TorpedoGameObject()
+            var torpedo = new TorpedoGameObject
             {
                 Id = Guid.NewGuid(),
                 GameObjectType = GameObjectType.TorpedoSalvo,
@@ -151,7 +147,6 @@ namespace EngineTests.ServiceTests
                 Position = new Position(8, 0)
             };
             WorldStateService.AddGameObject(torpedo);
-
 
             var handler = collisionHandlerResolver.ResolveHandler(gasCloud, torpedo);
             handler.ResolveCollision(gasCloud, torpedo);
@@ -163,14 +158,13 @@ namespace EngineTests.ServiceTests
         [Test]
         public void GivenTorpedoes_WhenHitAsteroid_ThenSmallerAndTorpedoSmaller()
         {
-            SetupFakeWorld(true);
+            SetupFakeWorld();
             var superFood = FakeGameObjectProvider.GetSuperfoodAt(new Position(0, 10));
-            var asteroidFields = FakeGameObjectProvider.GetAsteroidFields();
+            List<GameObject> asteroidFields = FakeGameObjectProvider.GetAsteroidFields();
             var asteroidField = asteroidFields[0];
             var asteroidSize = asteroidField.Size;
 
-
-            var torpedo = new TorpedoGameObject()
+            var torpedo = new TorpedoGameObject
             {
                 Id = Guid.NewGuid(),
                 GameObjectType = GameObjectType.TorpedoSalvo,
@@ -179,7 +173,6 @@ namespace EngineTests.ServiceTests
                 Position = new Position(8, 0)
             };
             WorldStateService.AddGameObject(torpedo);
-
 
             var handler = collisionHandlerResolver.ResolveHandler(asteroidField, torpedo);
             handler.ResolveCollision(asteroidField, torpedo);
@@ -192,10 +185,10 @@ namespace EngineTests.ServiceTests
         [Test]
         public void GivenTorpedoes_WhenHitPlayer_ThenSmallerAndTorpedoSmaller_AndFiringPlayerLarger()
         {
-            SetupFakeWorld(true);
+            SetupFakeWorld();
             var bot = WorldStateService.GetPlayerBots().First();
             var playerBot = FakeGameObjectProvider.GetBotAt(new Position(100, 100));
-            var torpedo = new TorpedoGameObject()
+            var torpedo = new TorpedoGameObject
             {
                 Id = Guid.NewGuid(),
                 GameObjectType = GameObjectType.TorpedoSalvo,
@@ -206,7 +199,6 @@ namespace EngineTests.ServiceTests
                 FiringPlayerId = playerBot.Id
             };
             WorldStateService.AddGameObject(torpedo);
-
 
             var handler = collisionHandlerResolver.ResolveHandler(torpedo, bot);
             handler.ResolveCollision(torpedo, bot);
@@ -220,7 +212,7 @@ namespace EngineTests.ServiceTests
         [Test]
         public void GivenPlayer_WhenUsesFireTorpedoes_ThenTorpedoGameObjectGenerated()
         {
-            SetupFakeWorld(true);
+            SetupFakeWorld();
             var bot = WorldStateService.GetPlayerBots().First();
             bot.PendingActions.Add(
                 new PlayerAction
@@ -231,8 +223,7 @@ namespace EngineTests.ServiceTests
                 });
             actionService.ApplyActionToBot(bot);
 
-            Assert.IsNotEmpty(WorldStateService.GetMovableObjects()
-                .Where(obj => obj.GameObjectType == GameObjectType.TorpedoSalvo));
+            Assert.IsNotEmpty(WorldStateService.GetMovableObjects().Where(obj => obj.GameObjectType == GameObjectType.TorpedoSalvo));
         }
     }
 }

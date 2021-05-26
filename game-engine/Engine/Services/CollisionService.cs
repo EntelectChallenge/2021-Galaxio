@@ -4,7 +4,6 @@ using System.Linq;
 using Domain.Models;
 using Engine.Interfaces;
 using Engine.Models;
-using Microsoft.Extensions.Options;
 
 namespace Engine.Services
 {

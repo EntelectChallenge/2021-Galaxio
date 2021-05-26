@@ -45,7 +45,7 @@ namespace Engine.Handlers.Collisions
                 bot.Score += engineConfig.ScoreRates[GameObjectType.Superfood];
 
                 var superFoodEffect = worldStateService.GetActiveEffectByType(bot.Id, Effects.Superfood);
-                if (superFoodEffect!= null)
+                if (superFoodEffect != null)
                 {
                     superFoodEffect.EffectDuration += engineConfig.WorldFood.SuperfoodEffectDuration;
                 }
@@ -59,6 +59,7 @@ namespace Engine.Handlers.Collisions
                     };
                     worldStateService.AddActiveEffect(currentEffect);
                 }
+
                 worldStateService.UpdateBotSpeed(bot);
                 go.Size = 0;
                 worldStateService.RemoveGameObjectById(go.Id);
@@ -80,6 +81,7 @@ namespace Engine.Handlers.Collisions
                     worldStateService.RemoveGameObjectById(mover.Id);
                 }
             }
+
             return true;
         }
     }

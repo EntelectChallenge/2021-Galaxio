@@ -14,7 +14,8 @@ namespace Engine.Handlers.Collisions
             this.worldStateService = worldStateService;
         }
 
-        public bool IsApplicable(GameObject gameObject, MovableGameObject mover) => gameObject.GameObjectType == GameObjectType.AsteroidField;
+        public bool IsApplicable(GameObject gameObject, MovableGameObject mover) =>
+            gameObject.GameObjectType == GameObjectType.AsteroidField;
 
         public bool ResolveCollision(GameObject go, MovableGameObject mover)
         {
@@ -52,8 +53,6 @@ namespace Engine.Handlers.Collisions
 
                 return mover.Size > 0;
             }
-
-
 
             return true;
         }

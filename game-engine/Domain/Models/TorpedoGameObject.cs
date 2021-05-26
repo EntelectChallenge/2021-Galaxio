@@ -9,6 +9,7 @@ namespace Domain.Models
         {
             GameObjectType = GameObjectType.TorpedoSalvo;
         }
+
         public Guid FiringPlayerId { get; set; }
     }
 }

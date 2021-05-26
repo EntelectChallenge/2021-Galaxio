@@ -72,10 +72,10 @@ namespace EngineTests.HandlerTests
 
             bot.Size = 340;
             bot.Speed = 1;
-            
+
             var handler = collisionHandlerResolver.ResolveHandler(asteroidField, bot);
             handler.ResolveCollision(asteroidField, bot);
-            
+
             Assert.AreEqual(1, bot.Speed);
         }
     }

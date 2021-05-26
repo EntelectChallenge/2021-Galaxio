@@ -48,8 +48,11 @@ namespace Engine.Services
         {
             if (playerCount >= botCount)
             {
-                Logger.LogError("VectorCalculation", $"Current PlayerCount was equal to or Higher than BotCount. PlayerCount: {playerCount}, BotCount: {botCount}");
+                Logger.LogError(
+                    "VectorCalculation",
+                    $"Current PlayerCount was equal to or Higher than BotCount. PlayerCount: {playerCount}, BotCount: {botCount}");
             }
+
             var degreeSeparation = 360 / botCount;
             var currentDegree = (playerCount + 1) * degreeSeparation;
             return GetStartPosition(startRadius, currentDegree);

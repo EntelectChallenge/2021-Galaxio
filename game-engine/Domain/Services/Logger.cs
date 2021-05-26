@@ -5,7 +5,7 @@ namespace Domain.Services
 {
     public static class Logger
     {
-        private static List<string> logLevel = GetLogLevels();
+        private static readonly List<string> logLevel = GetLogLevels();
 
         private static List<string> GetLogLevels()
         {
@@ -76,6 +76,7 @@ namespace Domain.Services
             {
                 return;
             }
+
             Console.ForegroundColor = color;
             Console.WriteLine($"[{level}] [{tag}]: {data}");
             Console.ResetColor();

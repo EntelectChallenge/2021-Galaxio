@@ -98,6 +98,7 @@ namespace Engine
             services.AddTransient<ICollisionHandler, AsteroidFieldCollisionHandler>();
             services.AddTransient<ICollisionHandler, SuperfoodCollisionHandler>();
             services.AddTransient<ICollisionHandler, TorpedoCollisionHandler>();
+            services.AddTransient<ICollisionHandler, BotToTorpedoCollisionHandler>();
         }
 
         public static void CloseApplication()

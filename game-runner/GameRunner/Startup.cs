@@ -24,12 +24,11 @@ namespace GameRunner
         {
             services.AddRazorPages();
             services.AddSignalR(
-                    o =>
-                    {
-                        o.EnableDetailedErrors = true;
-                        o.MaximumReceiveMessageSize = 2000000;
-                    })
-                .AddJsonProtocol(options => { options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
+                o =>
+                {
+                    o.EnableDetailedErrors = false;
+                    o.MaximumReceiveMessageSize = 2000000;
+                });
             services.AddCors();
             var runnerConfig = Configuration.GetSection("RunnerConfig");
             services.Configure<RunnerConfig>(runnerConfig);
@@ -65,8 +64,6 @@ namespace GameRunner
                 app.UseHsts();
             }
 
-            // TODO @IB Turned off for testing in cloud. We need to gen and ship our own https certs that get included with publishes
-            //app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();
@@ -79,7 +76,12 @@ namespace GameRunner
                 {
                     endpoints.MapRazorPages();
                     endpoints.MapControllers();
-                    endpoints.MapHub<RunnerHub>("/runnerhub");
+                    endpoints.MapHub<RunnerHub>("/runnerhub",
+                        options =>
+                        {
+                            options.ApplicationMaxBufferSize = 200000000;
+                            options.TransportMaxBufferSize = 200000000;
+                        });
                 });
         }
     }

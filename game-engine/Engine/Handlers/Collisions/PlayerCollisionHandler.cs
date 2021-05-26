@@ -8,7 +8,6 @@ using Engine.Handlers.Interfaces;
 using Engine.Interfaces;
 using Engine.Models;
 using Engine.Services;
-using Microsoft.Extensions.Options;
 
 namespace Engine.Handlers.Collisions
 {
@@ -66,8 +65,8 @@ namespace Engine.Handlers.Collisions
             }
 
             var botIsBigger = botObject.Size > go.Size;
-            var consumer = (botIsBigger ? botObject : go) as BotObject;
-            var consumee = (!botIsBigger ? botObject : go) as BotObject;
+            var consumer = botIsBigger ? botObject : go;
+            var consumee = !botIsBigger ? botObject : go;
 
             var consumedSize = collisionService.GetConsumedSizeFromPlayer(consumer, consumee);
 

@@ -7,7 +7,7 @@ stages:
 # ==============================| VARIABLES |============================== #
 variables:
   # REFERENCE BOT VERSION
-  REFERENCE_BOT_VERSION: "2021.2.0"
+  REFERENCE_BOT_VERSION: "2021.2.1"
 
   # STARTER BOT VERSIONS
   DOT_NET_VERSION: "3.1"

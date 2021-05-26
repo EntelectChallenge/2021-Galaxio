@@ -6,7 +6,6 @@ using Domain.Models;
 using Domain.Services;
 using Engine.Interfaces;
 using Engine.Models;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Engine.Services
@@ -129,12 +128,6 @@ namespace Engine.Services
                 }
 
                 UpdateBotSpeed(statePlayerObject);
-
-                if (statePlayerObject.Size < 5)
-                {
-                    Logger.LogInfo("BotDeath", "Bot shrunk too small");
-                    markedForRemoval.Add(statePlayerObject.Id);
-                }
             }
 
             foreach (var stateGameObject in state.GameObjects.Where(
@@ -219,11 +212,13 @@ namespace Engine.Services
 
         public bool GameObjectIsInWorldState(Guid id)
         {
-            return !markedForRemoval.Contains(id) && (state.PlayerGameObjects.Exists(o => o.Id == id) || state.GameObjects.Exists(o => o.Id == id));
+            return !markedForRemoval.Contains(id) &&
+                (state.PlayerGameObjects.Exists(o => o.Id == id) || state.GameObjects.Exists(o => o.Id == id));
         }
 
         public GameStateDto GetPublishedState()
         {
+            var stoplog = new StopWatchLogger();
             publishedState.World = state.World;
             publishedState.GameObjects.Clear();
             publishedState.PlayerObjects.Clear();
@@ -252,6 +247,8 @@ namespace Engine.Services
                     publishedState.PlayerObjects.Add(id, stateGameObject.ToStateList());
                 }
             }
+
+            stoplog.Log("Got Published state");
 
             return publishedState;
         }
@@ -315,6 +312,11 @@ namespace Engine.Services
 
         public void UpdateBotSpeed(GameObject bot)
         {
+            if (bot == null)
+            {
+                return;
+            }
+
             if (bot.Size == 0)
             {
                 bot.Speed = 0;
@@ -453,7 +455,7 @@ namespace Engine.Services
         private void HandleEffects()
         {
             var effectsToRemove = new List<ActiveEffect>();
-            
+
             //REFACTOR INTO A SWITCH:
             foreach (var activeEffect in activeEffects)
             {
@@ -468,6 +470,7 @@ namespace Engine.Services
                         {
                             bot.Size -= engineConfig.Afterburners.SizeConsumptionPerTick;
                         }
+
                         break;
 
                     /* Handle Gas Cloud effects. */
@@ -482,8 +485,9 @@ namespace Engine.Services
                         {
                             bot.Size -= engineConfig.GasClouds.AffectPerTick;
                         }
+
                         break;
-                    
+
                     /* Handle Asteroid Field effects. */
                     case Effects.AsteroidField:
                         /* Only reduce bot speed if it is in an Asteroid Field. */
@@ -495,17 +499,19 @@ namespace Engine.Services
                         {
                             UpdateBotSpeed(bot);
                         }
+
                         break;
-                    
+
                     /* Handle Superfood duration reduction and removal if needed */
                     case Effects.Superfood:
                         /* Only reduce superfood duration. */
                         activeEffect.EffectDuration -= 1;
-                
-                        if (activeEffect.EffectDuration <= 0 )
+
+                        if (activeEffect.EffectDuration <= 0)
                         {
                             effectsToRemove.Add(activeEffect);
                         }
+
                         break;
                 }
             }
@@ -516,6 +522,10 @@ namespace Engine.Services
         /* I need to have this GetCollisions in the WorldStateService in order to check for collisions with Gas Clouds and Asteroid Fields every tick. */
         private List<GameObject> GetCollisions(BotObject bot)
         {
+            if (bot == null)
+            {
+                return new List<GameObject>();
+            }
             IList<GameObject> gameObjects = GetCurrentGameObjects();
             return gameObjects.Where(go => go.Id != bot.Id && vectorCalculatorService.HasOverlap(go, bot)).ToList();
         }

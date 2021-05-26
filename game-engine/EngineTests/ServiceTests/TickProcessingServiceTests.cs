@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Domain.Models;
 using Engine.Handlers.Collisions;
 using Engine.Handlers.Interfaces;
@@ -52,7 +51,8 @@ namespace EngineTests.ServiceTests
             vectorCalculatorServiceMock
                 .Setup(vcs => vcs.CollectCollisionDetectionPointsAlongPath(It.IsAny<Position>(), It.IsAny<Position>(), It.IsAny<int>()))
                 .Returns(
-                    new List<Position>{
+                    new List<Position>
+                    {
                         new Position(0, 0),
                         new Position(1, 1),
                         new Position(2, 2)
@@ -80,7 +80,7 @@ namespace EngineTests.ServiceTests
 
             Assert.AreEqual(11, bot.Size);
             Assert.AreEqual(19, bot.Speed);
-            Assert.AreEqual(new Position(0,19),bot.Position);
+            Assert.AreEqual(new Position(0, 19), bot.Position);
         }
 
         [Test]
@@ -105,8 +105,11 @@ namespace EngineTests.ServiceTests
             bot.Speed = 20;
             bot.IsMoving = true;
 
-            var torpedoPosition = VectorCalculatorService.GetPositionFrom(bot.Position, bot.Size + EngineConfigFake.Value.Torpedo.Size + 1, bot.CurrentAction.Heading);
-            var torpedoSalvo = new TorpedoGameObject()
+            var torpedoPosition = VectorCalculatorService.GetPositionFrom(
+                bot.Position,
+                bot.Size + EngineConfigFake.Value.Torpedo.Size + 1,
+                bot.CurrentAction.Heading);
+            var torpedoSalvo = new TorpedoGameObject
             {
                 Id = Guid.NewGuid(),
                 Position = torpedoPosition,
@@ -138,8 +141,11 @@ namespace EngineTests.ServiceTests
             bot.Speed = 20;
             bot.IsMoving = true;
 
-            var torpedoPosition = VectorCalculatorService.GetPositionFrom(bot.Position, bot.Size + EngineConfigFake.Value.Torpedo.Size + 1, bot.CurrentAction.Heading);
-            var torpedoSalvo = new TorpedoGameObject()
+            var torpedoPosition = VectorCalculatorService.GetPositionFrom(
+                bot.Position,
+                bot.Size + EngineConfigFake.Value.Torpedo.Size + 1,
+                bot.CurrentAction.Heading);
+            var torpedoSalvo = new TorpedoGameObject
             {
                 Id = Guid.NewGuid(),
                 Position = torpedoPosition,

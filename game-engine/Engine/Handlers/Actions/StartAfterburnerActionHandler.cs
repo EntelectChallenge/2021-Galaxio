@@ -4,7 +4,6 @@ using Engine.Handlers.Interfaces;
 using Engine.Interfaces;
 using Engine.Models;
 using Engine.Services;
-using Microsoft.Extensions.Options;
 
 namespace Engine.Handlers.Actions
 {

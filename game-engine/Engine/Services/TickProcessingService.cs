@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Domain.Enums;
 using Domain.Models;
+using Domain.Services;
 using Engine.Handlers.Interfaces;
 using Engine.Interfaces;
 using Engine.Models;
@@ -17,6 +14,7 @@ namespace Engine.Services
         private readonly IWorldStateService worldStateService;
         private readonly ICollisionHandlerResolver collisionHandlerResolver;
         private readonly ICollisionService collisionService;
+        private StopWatchLogger stoplog;
 
         public TickProcessingService(
             ICollisionHandlerResolver collisionHandlerResolver,
@@ -28,16 +26,18 @@ namespace Engine.Services
             this.vectorCalculatorService = vectorCalculatorService;
             this.worldStateService = worldStateService;
             this.collisionService = collisionService;
+            stoplog = new StopWatchLogger();
         }
 
         public void SimulateTick()
         {
+            Logger.LogDebug("TPS", "Start of tick");
             if (worldStateService.GetPlayerCount() <= 1)
             {
                 return;
             }
 
-            var movingObjects = worldStateService.GetMovableObjects();
+            List<MovableGameObject> movingObjects = worldStateService.GetMovableObjects();
 
             var consumedItems = new List<MovableGameObject>();
             var simulationStep = 0;
@@ -47,14 +47,19 @@ namespace Engine.Services
              */
             List<MovementPath> movementPaths = (from movableGameObject in movingObjects
                 where movableGameObject.IsMoving
-                let endpoint = vectorCalculatorService.GetPointFrom(movableGameObject.Position, movableGameObject.Speed, movableGameObject.CurrentHeading)
+                let endpoint = vectorCalculatorService.GetPointFrom(
+                    movableGameObject.Position,
+                    movableGameObject.Speed,
+                    movableGameObject.CurrentHeading)
                 select new MovementPath
                 {
                     Mover = movableGameObject,
                     MovementEndpoint = endpoint,
                     MovementStartPoint = movableGameObject.Position,
-                    CollisionDetectionPoints =
-                        vectorCalculatorService.CollectCollisionDetectionPointsAlongPath(movableGameObject.Position, endpoint, movableGameObject.CurrentHeading)
+                    CollisionDetectionPoints = vectorCalculatorService.CollectCollisionDetectionPointsAlongPath(
+                        movableGameObject.Position,
+                        endpoint,
+                        movableGameObject.CurrentHeading)
                 }).ToList();
 
             while (movementPaths.Any())
@@ -76,6 +81,7 @@ namespace Engine.Services
                 movementPaths = movementPaths.Where(
                         movementPath => !consumedItems.Contains(movementPath.Mover) && movementPath.CollisionDetectionPoints.Any())
                     .ToList();
+
                 simulationStep++;
             }
         }
@@ -112,7 +118,10 @@ namespace Engine.Services
                     distanceToTravel = 0;
                 }
 
-                var endpoint = vectorCalculatorService.GetPointFrom(movementPath.Mover.Position, distanceToTravel, movementPath.Mover.CurrentHeading);
+                var endpoint = vectorCalculatorService.GetPointFrom(
+                    movementPath.Mover.Position,
+                    distanceToTravel,
+                    movementPath.Mover.CurrentHeading);
 
                 movementPath.CollisionDetectionPoints = vectorCalculatorService.CollectCollisionDetectionPointsAlongPath(
                     movementPath.Mover.Position,
@@ -123,7 +132,9 @@ namespace Engine.Services
             }
 
             var finalPointIsValid = false;
-            var distanceFromStart = vectorCalculatorService.GetDistanceBetween(movementPath.MovementStartPoint, movementPath.Mover.Position);
+            var distanceFromStart = vectorCalculatorService.GetDistanceBetween(
+                movementPath.MovementStartPoint,
+                movementPath.Mover.Position);
 
             while (!finalPointIsValid)
             {
@@ -132,6 +143,7 @@ namespace Engine.Services
                     finalPointIsValid = true;
                     break;
                 }
+
                 var distanceToEndpoint = vectorCalculatorService.GetDistanceBetween(
                     movementPath.Mover.Position,
                     movementPath.CollisionDetectionPoints.Last());
