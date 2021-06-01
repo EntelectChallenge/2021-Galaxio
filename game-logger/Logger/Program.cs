@@ -1,11 +1,11 @@
-﻿using Logger.Interfaces;
+﻿using System;
+using System.Threading.Tasks;
+using Logger.Interfaces;
 using Logger.Models;
 using Logger.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Threading.Tasks;
 
 namespace Logger
 {
@@ -30,20 +30,8 @@ namespace Logger
 
         private static void GetServiceConfiguration(HostBuilderContext _, IServiceCollection services)
         {
-            string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-
-            if (string.IsNullOrWhiteSpace(environmentName))
-            {
-                environmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-            }
-
-            var builder = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: true)
-                .AddJsonFile($"appsettings.{environmentName}.json", optional: true)
-                .AddEnvironmentVariables();
-
+            var builder = new ConfigurationBuilder().AddJsonFile("appsettings.json", false);
             Configuration = builder.Build();
-
             services.Configure<LoggerConfig>(Configuration);
             // Singletons are instantiated once and remain the same through the lifecycle of the app.
 

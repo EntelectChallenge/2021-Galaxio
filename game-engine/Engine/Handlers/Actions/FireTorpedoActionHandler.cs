@@ -28,6 +28,11 @@ namespace Engine.Handlers.Actions
 
         public void ProcessAction(BotObject bot)
         {
+            if (bot.TorpedoSalvoCount < 1)
+            {
+                return;
+            }
+
             var torpedoSalvo = new TorpedoGameObject
             {
                 Id = Guid.NewGuid(),
@@ -42,8 +47,9 @@ namespace Engine.Handlers.Actions
                 IsMoving = true
             };
             bot.Size -= engineConfig.Torpedo.Cost;
-            worldStateService.UpdateBotSpeed(bot);
+            bot.TorpedoSalvoCount--;
 
+            worldStateService.UpdateBotSpeed(bot);
             worldStateService.AddGameObject(torpedoSalvo);
         }
     }

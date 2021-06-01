@@ -24,11 +24,13 @@ namespace GameRunner
         {
             services.AddRazorPages();
             services.AddSignalR(
-                o =>
-                {
-                    o.EnableDetailedErrors = false;
-                    o.MaximumReceiveMessageSize = 2000000;
-                });
+                    o =>
+                    {
+                        o.EnableDetailedErrors = true;
+                        o.MaximumReceiveMessageSize = 2000000;
+                    })
+                .AddJsonProtocol(options => { options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()); })
+                .AddMessagePackProtocol();
             services.AddCors();
             var runnerConfig = Configuration.GetSection("RunnerConfig");
             services.Configure<RunnerConfig>(runnerConfig);

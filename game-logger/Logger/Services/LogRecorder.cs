@@ -161,7 +161,7 @@ namespace Logger.Services
             using var httpClient = new HttpClient();
             try
             {
-                var connectionInformation = new ConnectionInformation { Reason = "Logger was disconnected due to failed signalR connection", Status = ConnectionStatus.Disconnected };
+                var connectionInformation = new ConnectionInformation{Reason = "Logger was disconnected due to failed signalR connection", Status = ConnectionStatus.Disconnected};
                 var content = new StringContent(JsonConvert.SerializeObject(connectionInformation), Encoding.UTF8, "application/json");
                 var result = await httpClient.PostAsync($"{runnerUrl}/api/connections/logger", content);
                 if (result.StatusCode != HttpStatusCode.OK)
@@ -302,18 +302,16 @@ namespace Logger.Services
         {
             var filename = logFileName.EndsWith(".json") ? logFileName : $"{logFileName}.json";
             var path = Path.Combine(dir, filename);
-            var fileInfo = new FileInfo(path);
 
-            LogWriter.LogInfo("Logger", $"Begin writing file {fileInfo}");
+            LogWriter.LogInfo("Logger", $"Begin writing file {path.ToString()}");
             try
             {
-                fileInfo.Directory.Create();
-                using var streamWriter = fileInfo.CreateText();
+                using var file = File.CreateText(path);
                 var serializer = new JsonSerializer();
                 try
                 {
-                    serializer.Serialize(streamWriter, objToSerialise);
-                    streamWriter.Close();
+                    serializer.Serialize(file, objToSerialise);
+                    file.Close();
                 }
                 catch (Exception e)
                 {
@@ -324,7 +322,7 @@ namespace Logger.Services
             {
                 LogWriter.LogInfo("Logger", $"Error: {e.Message}");
             }
-            LogWriter.LogInfo("Logger", $"Finished writing file {fileInfo}");
+            LogWriter.LogInfo("Logger", $"Finished writing file {path.ToString()}");
             return path;
         }
 
@@ -359,6 +357,7 @@ namespace Logger.Services
         private async Task SaveLogsToS3(string finalLogDir)
         {
             var bucketName = s3BucketName;
+            var bucketKey = s3BucketKey;
             var bucketRegion = RegionEndpoint.GetBySystemName(awsRegion);
 
             LogWriter.LogInfo("AWS.S3", "Beginning S3 Upload");

@@ -276,6 +276,7 @@ namespace GameRunner
 
             runnerStateService.AddBotActionReceived(playerId.Value);
             playerAction.PlayerId = playerId.Value;
+            Logger.LogDebug("PLAYERACTION", $"PlayerAction: [ action: {playerAction.Action}, heading: {playerAction.Heading}, bot: {playerAction.PlayerId} ]");
             var engine = runnerStateService.GetEngine();
             await engine.Client.SendAsync("BotCommandReceived", playerId.Value, playerAction);
         }
