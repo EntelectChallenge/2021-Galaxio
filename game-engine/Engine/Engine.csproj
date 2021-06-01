@@ -9,11 +9,11 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
         <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="5.0.1" />
+        <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="5.0.6" />
         <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-        <PackageReference Include="System.Text.Encodings.Web" Version="5.0.0" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Domain\Domain.csproj" />

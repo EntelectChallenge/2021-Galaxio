@@ -121,6 +121,13 @@ namespace Engine.Services
 
             stoplog.Log("Informed Consumed Bots");
 
+            // foreach (var bot in aliveBots)
+            // {z
+            //     Logger.LogDebug(bot.Id, "Size", bot.Size);
+            //     Logger.LogDebug(bot.Id, "Speed", bot.Speed);
+            //     Logger.LogDebug(bot.Id, "Position", $"{bot.Position.X}:{bot.Position.Y}");
+            // }
+
             worldStateService.ApplyAfterTickStateChanges();
             stoplog.Log("After Tick SC Complete");
             CheckWinConditions();
