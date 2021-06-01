@@ -89,6 +89,7 @@ namespace Engine.Services
 
             Logger.LogDebug("SignalR.Startup", $"Connecting SignalR to {runnerUrl}");
             connection = new HubConnectionBuilder().WithUrl($"{runnerUrl}/runnerhub")
+                .AddMessagePackProtocol()
                 .ConfigureLogging(logging => { logging.SetMinimumLevel(LogLevel.Information); })
                 .Build();
             try
