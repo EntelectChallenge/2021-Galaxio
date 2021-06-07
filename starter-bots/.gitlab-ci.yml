@@ -24,7 +24,7 @@ variables:
 # ==============================| REFERENCE BOT |============================== #
 build:reference:
   stage: build
-  image: mcr.microsoft.com/dotnet/core/sdk:$DOT_NET_VERSION
+  image: mcr.microsoft.com/dotnet/sdk:$DOT_NET_VERSION
   tags:
     - aws
   rules:
