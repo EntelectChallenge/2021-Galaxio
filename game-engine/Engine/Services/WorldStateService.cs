@@ -327,7 +327,7 @@ namespace Engine.Services
 
             if (GetActiveEffectByType(bot.Id, Effects.Afterburner) != null)
             {
-                bot.Speed *= engineConfig.Afterburners.SpeedFactor;
+                bot.Speed += engineConfig.Afterburners.SpeedFactor;
             }
 
             if (GetActiveEffectByType(bot.Id, Effects.AsteroidField) != null &&

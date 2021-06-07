@@ -97,13 +97,13 @@ namespace EngineTests.ServiceTests
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
 
             Assert.AreEqual(59, bot.Size);
-            Assert.AreEqual(8, bot.Speed);
+            Assert.AreEqual(9, bot.Speed);
             Assert.AreEqual(0, bot.Position.Y);
-            Assert.AreEqual(8, bot.Position.X);
+            Assert.AreEqual(9, bot.Position.X);
         }
 
         [Test]
-        public void GivenBot_WithMovement_AndAfterburnerStarted_ThenStopAfterburnerAndNormalSpeedCorrect()
+        public void GivenBot_WithMovement_AndAfterburnerStarted_ThenDistanceAndSpeedCorrect()
         {
             SetupFakeWorld(true, false);
             var bot = new BotObject
@@ -137,17 +137,17 @@ namespace EngineTests.ServiceTests
             var activeEffect = WorldStateService.GetActiveEffectByType(bot.Id, Effects.Afterburner);
 
             Assert.AreEqual(59, bot.Size);
-            Assert.AreEqual(8, bot.Speed);
+            Assert.AreEqual(9, bot.Speed);
             Assert.AreEqual(0, bot.Position.Y);
-            Assert.AreEqual(12, bot.Position.X);
+            Assert.AreEqual(13, bot.Position.X);
 
             Assert.DoesNotThrow(() => engineService.SimulateTickForBots(WorldStateService.GetPlayerBots()));
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
 
             Assert.AreEqual(58, bot.Size);
-            Assert.AreEqual(8, bot.Speed);
+            Assert.AreEqual(9, bot.Speed);
             Assert.AreEqual(0, bot.Position.Y);
-            Assert.AreEqual(20, bot.Position.X);
+            Assert.AreEqual(22, bot.Position.X);
         }
 
         [Test]
