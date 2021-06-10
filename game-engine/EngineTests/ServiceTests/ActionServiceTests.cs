@@ -83,17 +83,17 @@ namespace EngineTests.ServiceTests
             var activeEffect = WorldStateService.GetActiveEffectByType(bot.Id, Effects.Afterburner);
             var botAfter = WorldStateService.GetState().PlayerGameObjects.Find(g => g.Id == bot.Id);
 
-            Assert.True(activeEffect != default);
-            Assert.True(activeEffect.Bot.Size == 10);
-            Assert.True(activeEffect.Bot.Speed == 40);
+            Assert.IsNotNull(activeEffect);
+            Assert.AreEqual(10, activeEffect.Bot.Size);
+            Assert.AreEqual(25, activeEffect.Bot.Speed);
             Assert.True(botAfter != default);
             Assert.True(botAfter.Effects == Effects.Afterburner);
 
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
 
-            Assert.True(activeEffect.Bot.Size == 9);
-            Assert.True(activeEffect.Bot.Speed == 40);
-            Assert.True(botAfter != default);
+            Assert.AreEqual(9, activeEffect.Bot.Size);
+            Assert.AreEqual(25, activeEffect.Bot.Speed);
+            Assert.IsNotNull(botAfter);
             Assert.True(botAfter.Effects == Effects.Afterburner);
         }
 
@@ -143,7 +143,7 @@ namespace EngineTests.ServiceTests
             Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
 
             Assert.AreEqual(9, bot.Size);
-            Assert.AreEqual(40, bot.Speed);
+            Assert.AreEqual(25, bot.Speed);
 
             var secondAction = FakeGameObjectProvider.GetStartAfterburnerPlayerAction(bot.Id);
             bot.PendingActions = new List<PlayerAction>
@@ -156,7 +156,7 @@ namespace EngineTests.ServiceTests
 
             Assert.True(activeEffect != default);
             Assert.AreEqual(9, bot.Size);
-            Assert.AreEqual(40, bot.Speed);
+            Assert.AreEqual(25, bot.Speed);
         }
 
         [Test]
@@ -178,7 +178,31 @@ namespace EngineTests.ServiceTests
 
             Assert.True(activeEffect != default);
             Assert.AreEqual(8, bot.Size);
-            Assert.AreEqual(46, bot.Speed);
+            Assert.AreEqual(28, bot.Speed);
+        }
+
+        [Test]
+        public void GivenLargeBot_WithAfterburnerStarted_ThenProcessTwoTicks()
+        {
+            SetupFakeWorld();
+            var bot = FakeGameObjectProvider.GetBotAtDefault();
+            bot.Size = 200;
+            bot.Speed = 1;
+            var firstAction = FakeGameObjectProvider.GetStartAfterburnerPlayerAction(bot.Id);
+            bot.PendingActions = new List<PlayerAction>
+            {
+                firstAction
+            };
+
+            Assert.DoesNotThrow(() => actionService.ApplyActionToBot(bot));
+            Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
+            Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
+
+            var activeEffect = WorldStateService.GetActiveEffectByType(bot.Id, Effects.Afterburner);
+
+            Assert.True(activeEffect != default);
+            Assert.AreEqual(198, bot.Size);
+            Assert.AreEqual(7, bot.Speed);
         }
 
         [Test]

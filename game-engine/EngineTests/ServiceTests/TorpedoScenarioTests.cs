@@ -214,6 +214,7 @@ namespace EngineTests.ServiceTests
         {
             SetupFakeWorld();
             var bot = WorldStateService.GetPlayerBots().First();
+            bot.TorpedoSalvoCount = 5;
             bot.PendingActions.Add(
                 new PlayerAction
                 {
