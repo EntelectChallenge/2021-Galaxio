@@ -33,7 +33,7 @@ The game complete log should be named as `gameState_gameComplete.json`, where `g
 1. Go to Options and follow this process when opening the visualiser for the first time:
     - Enter path to the log files
     - Select camera angle (0 by default)
-    - Toggle simple mode (Simple mode will use basic shapes instead of visual effects)
+    - Toggle simple mode (Simple mode will use basic shapes instead of visual effects which are not available on Linux)
     - Save
 2. Go back to the Main Menu
 3. Go to Load and select the desired log file from the list
