@@ -44,7 +44,7 @@ namespace EngineTests.ServiceTests
         {
             SetupFakeWorld(true, false);
             var bot = FakeGameObjectProvider.GetBotWithActions();
-            bot.IsMoving = true;
+            bot.ShouldCalculateCollisionPaths = true;
             vectorCalculatorServiceMock.Setup(x => x.GetPointFrom(It.IsAny<Position>(), It.IsAny<int>(), It.IsAny<int>()))
                 .Returns(VectorCalculatorService.GetPointFrom(bot.Position, 1, bot.CurrentHeading));
             vectorCalculatorServiceMock.Setup(x => x.IsInWorldBounds(It.IsAny<Position>(), It.IsAny<int>())).Returns(true);
@@ -68,7 +68,7 @@ namespace EngineTests.ServiceTests
             var bot = FakeGameObjectProvider.GetBotWithActions();
             bot.CurrentHeading = 90;
             bot.Speed = 20;
-            bot.IsMoving = true;
+            bot.ShouldCalculateCollisionPaths = true;
 
             tickProcessingService = new TickProcessingService(
                 collisionHandlerResolver,
@@ -88,8 +88,8 @@ namespace EngineTests.ServiceTests
         {
             var bot1 = FakeGameObjectProvider.GetBotWithActions();
             var bot2 = FakeGameObjectProvider.GetBigBotAt(new Position(0, 15));
-            bot1.IsMoving = true;
-            bot2.IsMoving = true;
+            bot1.ShouldCalculateCollisionPaths = true;
+            bot2.ShouldCalculateCollisionPaths = true;
 
             Assert.DoesNotThrow(() => tickProcessingService.SimulateTick());
             Assert.False(WorldStateService.GameObjectIsInWorldState(bot1.Id));
@@ -103,7 +103,7 @@ namespace EngineTests.ServiceTests
             var bot = FakeGameObjectProvider.GetBotWithActions();
             bot.CurrentHeading = 90;
             bot.Speed = 20;
-            bot.IsMoving = true;
+            bot.ShouldCalculateCollisionPaths = true;
 
             var torpedoPosition = VectorCalculatorService.GetPositionFrom(
                 bot.Position,
@@ -117,7 +117,7 @@ namespace EngineTests.ServiceTests
                 Speed = EngineConfigFake.Value.Torpedo.Speed,
                 CurrentHeading = 45,
                 FiringPlayerId = bot.Id,
-                IsMoving = true
+                ShouldCalculateCollisionPaths = true
             };
             WorldStateService.AddGameObject(torpedoSalvo);
 
@@ -139,7 +139,7 @@ namespace EngineTests.ServiceTests
             var bot = FakeGameObjectProvider.GetBotWithActions();
             bot.CurrentHeading = 90;
             bot.Speed = 20;
-            bot.IsMoving = true;
+            bot.ShouldCalculateCollisionPaths = true;
 
             var torpedoPosition = VectorCalculatorService.GetPositionFrom(
                 bot.Position,
@@ -153,7 +153,7 @@ namespace EngineTests.ServiceTests
                 Speed = EngineConfigFake.Value.Torpedo.Speed,
                 CurrentHeading = 45,
                 FiringPlayerId = bot.Id,
-                IsMoving = true
+                ShouldCalculateCollisionPaths = true
             };
             WorldStateService.AddGameObject(torpedoSalvo);
 

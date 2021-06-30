@@ -11,6 +11,5 @@ namespace Domain.Models
         public List<Tuple<GameObject, GameObject>> WormholePairs { get; set; }
         public List<GameObject> GasClouds { get; set; }
         public List<GameObject> AsteroidFields { get; set; }
-        public List<GameObject> Superfood { get; set; }
     }
 }

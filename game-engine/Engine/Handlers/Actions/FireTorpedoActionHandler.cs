@@ -33,24 +33,7 @@ namespace Engine.Handlers.Actions
                 return;
             }
 
-            var torpedoSalvo = new TorpedoGameObject
-            {
-                Id = Guid.NewGuid(),
-                Position = vectorCalculatorService.GetPositionFrom(
-                    bot.Position,
-                    bot.Size + engineConfig.Torpedo.Size + 1,
-                    bot.CurrentAction.Heading),
-                Size = engineConfig.Torpedo.Size,
-                Speed = engineConfig.Torpedo.Speed,
-                CurrentHeading = bot.CurrentAction.Heading,
-                FiringPlayerId = bot.Id,
-                IsMoving = true
-            };
-            bot.Size -= engineConfig.Torpedo.Cost;
-            bot.TorpedoSalvoCount--;
-
-            worldStateService.UpdateBotSpeed(bot);
-            worldStateService.AddGameObject(torpedoSalvo);
+            worldStateService.AddTorpedo(bot);
         }
     }
 }

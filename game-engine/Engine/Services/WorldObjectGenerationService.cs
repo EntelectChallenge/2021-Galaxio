@@ -392,6 +392,11 @@ namespace Engine.Services
             return result;
         }
 
+        public int GenerateSupernovaSeed(int supernovaSeed)
+        {
+            return engineConfig.Supernova.Seed ?? new Random().Next(engineConfig.Supernova.MinSeed, engineConfig.Supernova.MaxSeed);
+        }
+
         private Tuple<List<GameObject>, int> GenerateWorldObstacles(
             List<GameObject> gameObjects,
             WorldObstacleConfig config,

@@ -11,7 +11,7 @@ namespace Engine.Handlers.Actions
         public void ProcessAction(BotObject bot)
         {
             bot.CurrentHeading = bot.CurrentAction.Heading;
-            bot.IsMoving = true;
+            bot.ShouldCalculateCollisionPaths = true;
         }
     }
 }

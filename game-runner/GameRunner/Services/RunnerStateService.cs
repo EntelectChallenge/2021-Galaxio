@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
@@ -19,10 +20,10 @@ namespace GameRunner.Services
         private Timer componentTimer;
         private readonly RunnerConfig runnerConfig;
 
-        private readonly Dictionary<Guid, string> ActiveConnections = new Dictionary<Guid, string>();
-        private readonly Dictionary<Guid, string> AllConnections = new Dictionary<Guid, string>();
-        private readonly Dictionary<Guid, string> RegistrationTokens = new Dictionary<Guid, string>();
-        private readonly Dictionary<Guid, string> NickNames = new Dictionary<Guid, string>();
+        private readonly ConcurrentDictionary<Guid, string> ActiveConnections = new ConcurrentDictionary<Guid, string>();
+        private readonly ConcurrentDictionary<Guid, string> AllConnections = new ConcurrentDictionary<Guid, string>();
+        private readonly ConcurrentDictionary<Guid, string> RegistrationTokens = new ConcurrentDictionary<Guid, string>();
+        private readonly ConcurrentDictionary<Guid, string> NickNames = new ConcurrentDictionary<Guid, string>();
         public List<Guid> BotActionsReceived = new List<Guid>();
 
         private GameCompletePayload gameCompletePayload;
@@ -52,9 +53,9 @@ namespace GameRunner.Services
         public StateObject GetEngine() => gameEngine;
 
         public StateObject GetLogger() => gameLogger;
-        public Dictionary<Guid, string> GetActiveConnections() => ActiveConnections;
+        public ConcurrentDictionary<Guid, string> GetActiveConnections() => ActiveConnections;
 
-        public Dictionary<Guid, string> GetRegistrationTokens() => RegistrationTokens;
+        public ConcurrentDictionary<Guid, string> GetRegistrationTokens() => RegistrationTokens;
 
         public Guid RegisterClient(string connectionId, string nickName, IClientProxy client)
         {
@@ -72,8 +73,8 @@ namespace GameRunner.Services
             var botGuid = Guid.NewGuid();
             Logger.LogDebug("RunnerStateService", "Registering Bot");
             gameEngine.Client.SendAsync("BotRegistered", botGuid);
-            ActiveConnections.Add(botGuid, connectionId);
-            AllConnections.Add(botGuid, connectionId);
+            TryAdd(ActiveConnections, botGuid, connectionId);
+            TryAdd(AllConnections, botGuid, connectionId);
 
             if (nickName == null)
             {
@@ -81,7 +82,7 @@ namespace GameRunner.Services
             }
 
             nickName = nickName.Length <= 12 ? nickName : nickName.Substring(0, 12);
-            NickNames.Add(botGuid, nickName);
+            TryAdd(NickNames, botGuid, nickName);
 
             return botGuid;
         }
@@ -96,7 +97,11 @@ namespace GameRunner.Services
             }
 
             Logger.LogDebug("Remove Connection", $"Removing Connection ID: {connection.Value} for Bot Guid: {connection.Key.ToString()}");
-            ActiveConnections.Remove(connection.Key);
+            var removalResult = ActiveConnections.TryRemove(connection.Key, out _);
+            while (!removalResult)
+            {
+                removalResult = ActiveConnections.TryRemove(connection.Key, out _);
+            }
         }
 
         public Guid? GetBotGuidFromConnectionId(string connectionId)
@@ -139,7 +144,16 @@ namespace GameRunner.Services
 
         public void AddRegistrationToken(string connectionId, Guid token)
         {
-            RegistrationTokens.Add(token, connectionId);
+            TryAdd(RegistrationTokens, token, connectionId);
+        }
+
+        private void TryAdd(ConcurrentDictionary<Guid,string> dict, Guid token, string entry)
+        {
+            var result = false;
+            do
+            {
+                result = dict.TryAdd(token, entry);
+            } while (!result);
         }
 
         public string GetRegistrationToken(string botId)

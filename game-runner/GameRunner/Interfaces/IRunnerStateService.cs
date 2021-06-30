@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Domain.Models;
 using Microsoft.AspNetCore.SignalR;
@@ -21,11 +22,11 @@ namespace GameRunner.Interfaces
         StateObject GetLogger();
         void RegisterEngine(string connectionId, IClientProxy client);
         void RegisterLogger(string connectionId, IClientProxy client);
-        Dictionary<Guid, string> GetActiveConnections();
+        ConcurrentDictionary<Guid, string> GetActiveConnections();
         void AddRegistrationToken(string connectionId, Guid token);
         string GetRegistrationToken(string botId);
         void StopApplication();
-        Dictionary<Guid, string> GetRegistrationTokens();
+        ConcurrentDictionary<Guid, string> GetRegistrationTokens();
         bool GetBotActionReceived(Guid id);
         void AddBotActionReceived(Guid id);
         void ClearBotActionsReceived();

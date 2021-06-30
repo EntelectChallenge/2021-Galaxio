@@ -10,7 +10,7 @@ namespace Engine.Handlers.Actions
 
         public void ProcessAction(BotObject bot)
         {
-            bot.IsMoving = false;
+            bot.ShouldCalculateCollisionPaths = false;
         }
     }
 }

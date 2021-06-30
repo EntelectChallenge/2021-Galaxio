@@ -57,5 +57,7 @@ namespace Domain.Models
             !ReferenceEquals(lhs, null) ? lhs.Equals(rhs) : ReferenceEquals(rhs, null);
 
         public static bool operator !=(Position lhs, Position rhs) => !(lhs == rhs);
+
+        public override string ToString() => $"[ {X}, {Y} ]";
     }
 }

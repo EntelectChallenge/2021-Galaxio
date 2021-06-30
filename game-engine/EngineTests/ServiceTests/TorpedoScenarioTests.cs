@@ -32,12 +32,13 @@ namespace EngineTests.ServiceTests
             collisionHandlers = new List<ICollisionHandler>
             {
                 new FoodCollisionHandler(WorldStateService, EngineConfigFake),
-                new PlayerCollisionHandler(WorldStateService, collisionService, EngineConfigFake, VectorCalculatorService),
+                new PlayerCollisionHandler(WorldStateService, collisionService, EngineConfigFake,
+                    VectorCalculatorService),
                 new WormholeCollisionHandler(WorldStateService, VectorCalculatorService, EngineConfigFake),
                 new GasCloudCollisionHandler(WorldStateService, EngineConfigFake),
                 new AsteroidFieldCollisionHandler(WorldStateService),
                 new SuperfoodCollisionHandler(WorldStateService, EngineConfigFake),
-                new TorpedoCollisionHandler(EngineConfigFake, WorldStateService)
+                new TorpedoCollisionHandler(EngineConfigFake, WorldStateService, VectorCalculatorService)
             };
             collisionHandlerResolver = new CollisionHandlerResolver(collisionHandlers);
             actionHandlers = new List<IActionHandler>
@@ -55,7 +56,8 @@ namespace EngineTests.ServiceTests
                 VectorCalculatorService,
                 WorldStateService,
                 collisionService);
-            engineService = new EngineService(WorldStateService, actionService, EngineConfigFake, tickProcessingService);
+            engineService =
+                new EngineService(WorldStateService, actionService, EngineConfigFake, tickProcessingService);
         }
 
         [Test]
@@ -69,7 +71,7 @@ namespace EngineTests.ServiceTests
                 Id = Guid.NewGuid(),
                 GameObjectType = GameObjectType.TorpedoSalvo,
                 Size = EngineConfigFake.Value.Torpedo.Size,
-                IsMoving = true,
+                ShouldCalculateCollisionPaths = true,
                 Position = food.Position
             };
             WorldStateService.AddGameObject(torpedo);
@@ -90,13 +92,14 @@ namespace EngineTests.ServiceTests
             List<Tuple<GameObject, GameObject>> wormholes = state.WormholePairs;
             var wormhole = wormholes[0].Item1;
 
-            var startPosition = new Position(wormhole.Position.X + wormhole.Size + 5, wormhole.Position.Y + wormhole.Size + 5);
+            var startPosition = new Position(wormhole.Position.X + wormhole.Size + 5,
+                wormhole.Position.Y + wormhole.Size + 5);
             var torpedo = new TorpedoGameObject
             {
                 Id = Guid.NewGuid(),
                 GameObjectType = GameObjectType.TorpedoSalvo,
                 Size = EngineConfigFake.Value.Torpedo.Size,
-                IsMoving = true,
+                ShouldCalculateCollisionPaths = true,
                 Position = startPosition
             };
             WorldStateService.AddGameObject(torpedo);
@@ -119,7 +122,7 @@ namespace EngineTests.ServiceTests
                 Id = Guid.NewGuid(),
                 GameObjectType = GameObjectType.TorpedoSalvo,
                 Size = EngineConfigFake.Value.Torpedo.Size,
-                IsMoving = true,
+                ShouldCalculateCollisionPaths = true,
                 Position = superFood.Position
             };
             WorldStateService.AddGameObject(torpedo);
@@ -143,7 +146,7 @@ namespace EngineTests.ServiceTests
                 Id = Guid.NewGuid(),
                 GameObjectType = GameObjectType.TorpedoSalvo,
                 Size = EngineConfigFake.Value.Torpedo.Size,
-                IsMoving = true,
+                ShouldCalculateCollisionPaths = true,
                 Position = new Position(8, 0)
             };
             WorldStateService.AddGameObject(torpedo);
@@ -169,7 +172,7 @@ namespace EngineTests.ServiceTests
                 Id = Guid.NewGuid(),
                 GameObjectType = GameObjectType.TorpedoSalvo,
                 Size = EngineConfigFake.Value.Torpedo.Size,
-                IsMoving = true,
+                ShouldCalculateCollisionPaths = true,
                 Position = new Position(8, 0)
             };
             WorldStateService.AddGameObject(torpedo);
@@ -193,7 +196,7 @@ namespace EngineTests.ServiceTests
                 Id = Guid.NewGuid(),
                 GameObjectType = GameObjectType.TorpedoSalvo,
                 Size = EngineConfigFake.Value.Torpedo.Size,
-                IsMoving = true,
+                ShouldCalculateCollisionPaths = true,
                 Position = new Position(0, 10),
                 Speed = EngineConfigFake.Value.Torpedo.Speed,
                 FiringPlayerId = playerBot.Id
@@ -224,7 +227,38 @@ namespace EngineTests.ServiceTests
                 });
             actionService.ApplyActionToBot(bot);
 
-            Assert.IsNotEmpty(WorldStateService.GetMovableObjects().Where(obj => obj.GameObjectType == GameObjectType.TorpedoSalvo));
+            Assert.IsNotEmpty(WorldStateService.GetMovableObjects()
+                .Where(obj => obj.GameObjectType == GameObjectType.TorpedoSalvo));
+        }
+
+        [Test]
+        public void GivenPlayer_WhenShieldIsActive_ThenTorpedoBouncesAway()
+        {
+            SetupFakeWorld();
+            var bot = WorldStateService.GetPlayerBots().First();
+            var playerBot = FakeGameObjectProvider.GetBotAt(new Position(100, 100));
+            WorldStateService.AddActiveEffect(new ActiveEffect{Bot = bot, Effect = Effects.Shield, EffectDuration = 20});
+            var torpedo = new TorpedoGameObject
+            {
+                Id = Guid.NewGuid(),
+                GameObjectType = GameObjectType.TorpedoSalvo,
+                Size = EngineConfigFake.Value.Torpedo.Size,
+                ShouldCalculateCollisionPaths = true,
+                Position = bot.Position,
+                Speed = EngineConfigFake.Value.Torpedo.Speed,
+                FiringPlayerId = playerBot.Id
+            };
+
+            var originalHeading = torpedo.CurrentHeading;
+
+            WorldStateService.AddGameObject(torpedo);
+
+            var handler = collisionHandlerResolver.ResolveHandler(torpedo, bot);
+            var resolveCollision = handler.ResolveCollision(torpedo, bot);
+
+            Assert.True(torpedo.CurrentHeading == originalHeading + 180);
+            Assert.True(bot.CurrentHeading == originalHeading);
+            Assert.True(resolveCollision);
         }
     }
 }
