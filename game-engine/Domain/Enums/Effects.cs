@@ -8,6 +8,7 @@ namespace Domain.Enums
         Afterburner = 1,
         AsteroidField = 2,
         GasCloud = 4,
-        Superfood = 8
+        Superfood = 8,
+        Shield = 16
     }
 }

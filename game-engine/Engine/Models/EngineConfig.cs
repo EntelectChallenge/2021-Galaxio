@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Domain.Enums;
+using Domain.Models;
 
 namespace Engine.Models
 {
@@ -28,6 +29,30 @@ namespace Engine.Models
         public WorldObstacleConfig GasClouds { get; set; }
         public WorldObstacleConfig AsteroidFields { get; set; }
         public TorpedoConfig Torpedo { get; set; }
+        public SupernovaConfig Supernova { get; set; }
+        public TeleportConfig Teleport { get; set; }
+        public ShieldConfig Shield { get; set; }
+    }
+
+    public class TeleportConfig
+    {
+        public int ChargeRate { get; set; }
+        public int StartChargeCount { get; set; }
+        public int MaxChargeCount { get; set; }
+        public int Speed { get; set; }
+        public int Cost { get; set; }
+        public int Size { get; set; }
+    }
+    
+    public class SupernovaConfig
+    {
+        public int? Seed { get; set; }
+        public int MinSeed { get; set; }
+        public int MaxSeed { get; set; }
+        public int Size { get; set; }
+        public int Speed { get; set; }
+        public decimal ExplosionSizeRatio { get; set; }
+        public int Damage { get; set; }
     }
 
     public class TorpedoConfig
@@ -37,6 +62,14 @@ namespace Engine.Models
         public int Speed { get; set; }
         public int Cost { get; set; }
         public int Size { get; set; }
+    }
+
+    public class ShieldConfig
+    {
+    public int ChargeRate { get; set; }
+    public int MaxChargeCount { get; set; }
+    public int Cost { get; set; }
+    public int ShieldEffectDuration { get; set; }
     }
 
     public class WormholeConfig

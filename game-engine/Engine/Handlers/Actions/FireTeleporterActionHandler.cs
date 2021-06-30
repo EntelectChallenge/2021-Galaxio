@@ -1,5 +1,4 @@
-﻿using System;
-using Domain.Enums;
+﻿using Domain.Enums;
 using Domain.Models;
 using Engine.Handlers.Interfaces;
 using Engine.Interfaces;
@@ -8,13 +7,13 @@ using Engine.Services;
 
 namespace Engine.Handlers.Actions
 {
-    public class FireTorpedoActionHandler : IActionHandler
+    public class FireTeleporterActionHandler : IActionHandler
     {
         private readonly IWorldStateService worldStateService;
         private readonly IVectorCalculatorService vectorCalculatorService;
         private readonly EngineConfig engineConfig;
 
-        public FireTorpedoActionHandler(
+        public FireTeleporterActionHandler(
             IWorldStateService worldStateService,
             IVectorCalculatorService vectorCalculatorService,
             IConfigurationService configurationService)
@@ -24,16 +23,21 @@ namespace Engine.Handlers.Actions
             engineConfig = configurationService.Value;
         }
 
-        public bool IsApplicable(PlayerAction action) => action.Action == PlayerActions.FireTorpedoes;
+        public bool IsApplicable(PlayerAction action) => action.Action == PlayerActions.FireTeleport;
 
         public void ProcessAction(BotObject bot)
         {
-            if (bot.TorpedoSalvoCount < 1)
+            if (bot.TeleporterCount <= 0)
             {
                 return;
             }
 
-            worldStateService.AddTorpedo(bot);
+            var position = vectorCalculatorService.GetPositionFrom(
+                bot.Position,
+                bot.Size + engineConfig.Teleport.Size + 1,
+                bot.CurrentAction.Heading);
+
+            worldStateService.AddTeleport(bot.CurrentAction.Heading, position, bot);
         }
     }
 }

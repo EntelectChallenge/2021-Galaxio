@@ -12,5 +12,6 @@ namespace Engine.Interfaces
         List<Tuple<GameObject, GameObject>> GenerateWormholes(List<GameObject> stateGameObjects, int wormholeSeed);
         Tuple<List<GameObject>, int> GenerateGasClouds(List<GameObject> gameObjects, int gasCloudSeed);
         Tuple<List<GameObject>, int> GenerateAsteroidFields(List<GameObject> gameObjects, int asteroidFieldSeed);
+        int GenerateSupernovaSeed(int supernovaSeed);
     }
 }

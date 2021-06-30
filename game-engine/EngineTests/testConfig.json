@@ -107,5 +107,28 @@
     "Speed":60,
     "Size":10,
     "Cost":5
+  },
+  "Supernova": {
+    "Seed": null,
+    "MinSeed": 10000,
+    "MaxSeed": 10000000,
+    "Size": 10,
+    "Speed": 20,
+    "ExplosionSizeRatio": 0.25,
+    "Damage": 20
+  },
+  "Teleport": {
+    "ChargeRate": 10,
+    "StartChargeCount": 1,
+    "MaxChargeCount": 10,
+    "Speed": 20,
+    "Cost": 20,
+    "Size": 10
+  },
+  "Shield": {
+    "ChargeRate": 20,
+    "MaxChargeCount": 1,
+    "Cost": 20,
+    "ShieldEffectDuration": 20
   }
 }

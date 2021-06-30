@@ -16,7 +16,7 @@ namespace EngineTests.Fakes
             this.worldStateService = worldStateService;
             this.worldObjectGenerationService = worldObjectGenerationService;
         }
-
+        
         public List<Tuple<GameObject, GameObject>> GetWormholes(int seed)
         {
             var gameObjects = new List<GameObject>();
@@ -164,6 +164,22 @@ namespace EngineTests.Fakes
             worldStateService.AddBotObject(bot);
             return bot;
         }
+        
+        public GameObject GetTeleporter(Position position, int heading, Guid botId)
+        {
+            var teleporter = new TeleporterObject
+            {
+                Id = Guid.NewGuid(),
+                CurrentHeading = heading,
+                Position = position,
+                GameObjectType = GameObjectType.Teleporter,
+                Size = 10,
+                Speed = 20,
+                FiringPlayerId = botId
+            };
+
+            return teleporter;
+        }
 
         public PlayerAction GetForwardPlayerAction(Guid botId) =>
             new PlayerAction
@@ -192,6 +208,22 @@ namespace EngineTests.Fakes
             new PlayerAction
             {
                 Action = PlayerActions.StopAfterburner,
+                PlayerId = botId
+            };
+        
+        public PlayerAction GetFireTeleporterAction(Guid botId, int heading) =>
+            new PlayerAction
+            {
+                Action = PlayerActions.FireTeleport,
+                Heading = heading,
+                PlayerId = botId
+            };
+
+        
+        public PlayerAction GetTeleportAction(Guid botId) =>
+            new PlayerAction
+            {
+                Action = PlayerActions.Teleport,
                 PlayerId = botId
             };
     }

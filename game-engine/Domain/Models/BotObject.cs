@@ -11,6 +11,10 @@ namespace Domain.Models
         public int Placement { get; set; }
         public int Seed { get; set; }
         public int TorpedoSalvoCount { get; set; }
+        public int ShieldCount { get; set; }
+        public int SupernovaAvailable { get; set; }
+
+        public int TeleporterCount { get; set; }
 
         public new List<int> ToStateList() =>
             new List<int>
@@ -22,7 +26,10 @@ namespace Domain.Models
                 Position.X,
                 Position.Y,
                 Effects.GetHashCode(),
-                TorpedoSalvoCount
+                TorpedoSalvoCount,
+                SupernovaAvailable,
+                TeleporterCount,
+                ShieldCount
             };
     }
 }

@@ -46,7 +46,7 @@ namespace Engine.Services
              * Collect their collision points along that path
              */
             List<MovementPath> movementPaths = (from movableGameObject in movingObjects
-                where movableGameObject.IsMoving
+                where movableGameObject.ShouldCalculateCollisionPaths
                 let endpoint = vectorCalculatorService.GetPointFrom(
                     movableGameObject.Position,
                     movableGameObject.Speed,

@@ -17,10 +17,13 @@ In a match your **1** ship will compete against a **variable** amount of other s
         - [Gas Clouds](#gas-clouds)
         - [Asteroid Fields](#asteroid-fields)
         - [Torpedo Salvo](#torpedo-salvo)
+        - [Supernova](#supernova)
+        - [Teleport](#teleport)
     - [The Ship](#the-ship)
         - [Speed](#speed)
         - [Afterburner](#afterburner)
         - [Dark Matter Torpedoes](#dark-matter-torpedoes)
+        - [Shield](#shield)
     - [Collisions](#collisions)
         - [Ship to ship collisions](#ship-to-ship-collisions)
         - [Food collisions](#food-collisions)
@@ -34,6 +37,10 @@ In a match your **1** ship will compete against a **variable** amount of other s
         - [Command: START_AFTERBURNER](#command:-START_AFTERBURNER)
         - [Command: STOP_AFTERBURNER](#command:-STOP_AFTERBURNER)
         - [Command: FIRE_TORPEDOES](#command:-FIRE_TORPEDOES)
+        - [Command: FIRE_SUPERNOVA](#command:-FIRE_SUPERNOVA)
+        - [Command: DETONATE_SUPERNOVA](#command:-DETONATE_SUPERNOVA)
+        - [Command: FIRE_TELEPORTER](#command:-FIRE_TELEPORTER)
+        - [Command: TELEPORT](#command:-TELEPORT)
     - [Endgame](#endgame)
     - [Scoring](#scoring)
     - [The Math](#the-math)
@@ -131,6 +138,38 @@ When these appear in the map, they have been launched from another ship! Watch o
 * They will exit the wormhole at the opposite end and continue along their path
 * They consume energy from the wormhole traversal, in the same manner players do
 
+### Supernova
+
+A supernova is an extremely powerful weapon, which only appears once per match!
+A supernova pickup will spawn sometime between the first quarter and last quarter of the game.
+
+This pickup will enable the player who has collected it to fire a supernova bomb!
+
+The supernova bomb travels like a torpedo, but does not collide with anything while travelling.
+The firing player can then send a follow up command to detonate the supernova, causing a large amount of damage to any players caught in the blast zone! Additionally, it will spawn a gas cloud in its fallout radius.
+
+Once a player has collected the pickup, it cannot be used by any other player. No further pickups will spawn, either. Destroying a player who currently has the supernova pickup will destroy the pickup. 
+
+
+### Teleport
+
+A player can launch a teleporter in a direction on the map. The teleporter moves in that direction at speed 20 and doesn't collide with anything.
+
+The player can then use another command to teleport to the location of their teleporter.
+
+It gets destroyed if it reaches the end of the map.
+
+It costs a player 20 size to launch a teleporter regardless of whether they teleport to it or not. A player starts with one teleporter and gets another every 100 ticks and can have a maximum of 10 at any point.
+
+The following values configure this feature in the app settings file:
+* **ChargeRate** 
+* **StartChargeCount** 
+* **MaxChargeCount** 
+* **Size** 
+* **Speed** 
+* **Cost** 
+
+
 ---
 
 ## The Ship
@@ -175,6 +214,15 @@ Torpedoes that hit objects in the world will destroy those objects, and when the
 * Your ship can then trade a salvo charge for 5 size to fire a barrage of 10 torpedoes in your chosen direction.
 * Firing a salvo of torpedoes while your ship is less than size 10 can cause your ship to self destruct if it becomes less than size 10. 
 
+### Shield
+
+For defence your ship can activate it's shield. Once enabled, it can defect torepedos, which bounce right off.
+
+While torpedos will bouce off in the opposite direction. Your ship will be propelled in the direction the torpedo was orrinally heading.
+
+Gas clouds and other phenomioa are not effected.
+
+Once activated the sheild will last for the next 20 ticks and will consume a size of 20. They also require a recharge time of 20 ticks.
 
 ## Collisions
 
@@ -376,7 +424,80 @@ Example Payload in JSON with types:
 
 ***Note:** the state will reflect a single object of size 10 to represent your torpedo salvo*
 
+### Command: FIRE_SUPERNOVA
+```
+FIRE_SUPERNOVA
+```
+This command consumes supernova pickup to send out a supernova in the given heading
 
+Example Payload in JSON with types:
+```jsonc
+{
+  "playerId": "00000000-0000-0000-0000-000000000000", //string or GUID, not required
+  "action": 6, // int
+  "heading": 75 // int
+}
+```
+
+### Command: DETONATE_SUPERNOVA
+```
+DETONATE_SUPERNOVA
+```
+This command detonates existing supernova
+
+Example Payload in JSON with types:
+```jsonc
+{
+  "playerId": "00000000-0000-0000-0000-000000000000", //string or GUID, not required
+  "action": 7 // int
+}
+```
+
+### Command: FIRE_TELEPORTER
+
+```
+FIRE_TELEPORTER
+```
+This command consumes 1 teleport charge and 20 size to send out a teleporter in the given heading
+
+Example Payload in JSON with types:
+```jsonc
+{
+  "playerId": "00000000-0000-0000-0000-000000000000", //string or GUID, not required
+  "action": 8, // int,
+  "heading": 75 // int
+}
+```
+
+### Command: TELEPORT
+
+```
+TELEPORT
+```
+This command teleports you to your existing teleporter if it exists.
+
+Example Payload in JSON with types:
+```jsonc
+{
+  "playerId": "00000000-0000-0000-0000-000000000000", //string or GUID, not required
+  "action": 9 // int
+}
+```
+
+### Command: USE_SHIELD
+
+```
+USE_SHIELD
+```
+This command activates your shield to deflect incoming torpedoes, if you have one available.
+
+Example Payload in JSON with types:
+```jsonc
+{
+  "playerId": "00000000-0000-0000-0000-000000000000", //string or GUID, not required
+  "action": 10 // int
+}
+```
 ## Endgame
 
 The last ship alive is the winning ship and thus the winning bot.

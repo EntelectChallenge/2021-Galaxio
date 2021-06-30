@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Domain.Enums;
 using Domain.Models;
 using Engine.Handlers.Actions;
@@ -36,7 +37,8 @@ namespace EngineTests.ServiceTests
                 new GasCloudCollisionHandler(WorldStateService, EngineConfigFake),
                 new AsteroidFieldCollisionHandler(WorldStateService),
                 new SuperfoodCollisionHandler(WorldStateService, EngineConfigFake),
-                new TorpedoCollisionHandler(EngineConfigFake, WorldStateService)
+                new TorpedoCollisionHandler(EngineConfigFake, WorldStateService, VectorCalculatorService),
+                new TeleporterCollisionHandler(EngineConfigFake, WorldStateService)
             };
             collisionHandlerResolver = new CollisionHandlerResolver(collisionHandlers);
             actionHandlers = new List<IActionHandler>
@@ -45,7 +47,9 @@ namespace EngineTests.ServiceTests
                 new StartAfterburnerActionHandler(WorldStateService, EngineConfigFake),
                 new StopAfterburnerActionHandler(WorldStateService),
                 new StopActionHandler(),
-                new FireTorpedoActionHandler(WorldStateService, VectorCalculatorService, EngineConfigFake)
+                new FireTorpedoActionHandler(WorldStateService, VectorCalculatorService, EngineConfigFake),
+                new FireTeleporterActionHandler(WorldStateService, VectorCalculatorService, EngineConfigFake),
+                new TeleportActionHandler(WorldStateService)
             };
             actionHandlerResolver = new ActionHandlerResolver(actionHandlers);
             actionService = new ActionService(WorldStateService, actionHandlerResolver);
@@ -235,6 +239,9 @@ namespace EngineTests.ServiceTests
             }
 
             Assert.AreEqual(4, bot.Size);
+            
+            Assert.DoesNotThrow(() => actionService.ApplyActionToBot(bot));
+            Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
             Assert.False(WorldStateService.GameObjectIsInWorldState(bot.Id));
         }
 
@@ -288,6 +295,63 @@ namespace EngineTests.ServiceTests
             Assert.True(activeEffect == null);
             Assert.True(botAfter != default);
             Assert.AreEqual(13, bot.Size);
+        }
+        
+                
+        [Test]
+        public void GivenBot_WhenFireTeleport_ThenTeleportMovingInWorld()
+        {
+            SetupFakeWorld(true, false);
+            var state = WorldStateService.GetState();
+            
+            var bot = FakeGameObjectProvider.GetBotAt(new Position(0, 0));
+            bot.CurrentHeading = 90;
+            bot.Speed = 20;
+            bot.CurrentAction = FakeGameObjectProvider.GetForwardPlayerActionInHeading(bot.Id, 90);
+            bot.TeleporterCount = 2;
+            bot.ShouldCalculateCollisionPaths = true;
+
+            var firstAction = FakeGameObjectProvider.GetFireTeleporterAction(bot.Id, 0);
+            var secondAction = FakeGameObjectProvider.GetForwardPlayerActionInHeading(bot.Id, 90);
+            var thirdAction = FakeGameObjectProvider.GetTeleportAction(bot.Id);
+
+            WorldStateService.GetPlayerBots()[1].PendingActions = new List<PlayerAction>
+            {
+                firstAction,
+                secondAction
+            };
+
+            tickProcessingService = new TickProcessingService(
+                collisionHandlerResolver,
+                VectorCalculatorService,
+                WorldStateService,
+                collisionService);
+
+            actionService.ApplyActionToBot(bot);
+            tickProcessingService.SimulateTick();
+            engineService.SimulateTickForBots(WorldStateService.GetPlayerBots());
+            Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
+
+            var teleporter = state.GameObjects.FirstOrDefault(go => go.GameObjectType == GameObjectType.Teleporter);
+
+            Assert.NotNull(teleporter);
+            Assert.AreEqual(new Position(41,0), teleporter.Position);
+            Assert.AreEqual(new Position(0,40), bot.Position);
+
+            actionService.ApplyActionToBot(bot);
+            tickProcessingService.SimulateTick();
+            engineService.SimulateTickForBots(WorldStateService.GetPlayerBots());
+            Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
+
+            Assert.AreEqual(new Position(61,0), teleporter.Position);
+
+            bot.CurrentAction = thirdAction;
+            actionService.ApplyActionToBot(bot);
+            tickProcessingService.SimulateTick();
+            engineService.SimulateTickForBots(WorldStateService.GetPlayerBots());
+            Assert.DoesNotThrow(() => WorldStateService.ApplyAfterTickStateChanges());
+
+            Assert.AreEqual(new Position(61,0), bot.Position);
         }
     }
 }

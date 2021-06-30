@@ -30,5 +30,11 @@ namespace Engine.Interfaces
         GameCompletePayload GenerateGameCompletePayload();
         List<BotObject> FinalisePlayerPlacements();
         List<MovableGameObject> GetMovableObjects();
+        void AddTeleport(int heading, Position position, BotObject bot);
+        void AddSupernova(int heading, Position position, Guid botId);
+        void AddTorpedo(BotObject bot);
+        void MarkSupernovaForDetonation(BotObject botObject);
+        void TeleportBot(GameObject teleporter, BotObject botObject);
+        GameObject GetActiveTeleporterForBot(Guid botId);
     }
 }
