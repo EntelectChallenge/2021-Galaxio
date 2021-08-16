@@ -532,8 +532,8 @@ namespace Engine.Services
                 }
 
                 var positionUpdate =
-                    vectorCalculatorService.GetPositionFrom(supernova.Position, supernova.CurrentHeading,
-                        supernova.Speed);
+                    vectorCalculatorService.GetPositionFrom(supernova.Position, supernova.Speed,
+                        supernova.CurrentHeading);
                 supernova.Position = positionUpdate;
             }
         }
